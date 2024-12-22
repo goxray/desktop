@@ -2,8 +2,8 @@ package window
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
-	"net/url"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -14,9 +14,40 @@ import (
 	"github.com/goxray/ui/icon"
 )
 
+const repositoryLink = "https://github.com/goxray"
+
+// Texts for future translations.
+const (
+	SettingsText                = "Settings"
+	ConfigsText                 = "Configs"
+	AboutText                   = "About"
+	LinkPlaceholderText         = "vless://example.com..."
+	LinkNamePlaceholderText     = "Display name"
+	AddText                     = "Add"
+	UpdateText                  = "Update"
+	DeleteText                  = "Delete"
+	InsertYourConnectionURLText = "Insert your connection URL"
+
+	ErrChangeActiveText = "disconnect before editing"
+	ErrLabelOrLinkEmpty = "label or link empty"
+)
+
+var (
+	ErrChangeActiveItem     = errors.New(ErrChangeActiveText)
+	ErrEmptyUpdateFormValue = errors.New(ErrLabelOrLinkEmpty)
+)
+
 type FormData struct {
 	Label string
 	Link  string
+}
+
+func (f *FormData) Validate() error {
+	if f.Label == "" || f.Link == "" {
+		return ErrEmptyUpdateFormValue
+	}
+
+	return nil
 }
 
 type ListItem interface {
@@ -36,75 +67,99 @@ func NewSettings[T ListItem](
 	onDelete func(T) error,
 	list binding.DataList,
 ) fyne.Window {
-	w := a.NewWindow("Settings")
+	w := a.NewWindow(SettingsText)
 	w.CenterOnScreen()
 	w.RequestFocus()
+	w.Resize(fyne.NewSize(700, 580))
 
-	addForm := createAddForm(onAdd)
-	itemsList := container.NewBorder(
-		container.NewVBox(widget.NewLabel("Available connection links:"), widget.NewSeparator()),
-		nil, nil, nil, createDynamicList(list, onDelete, onUpdate),
-	)
-
-	configsTab := container.NewBorder(nil, nil, addForm, nil, container.NewBorder(
-		nil, nil,
-		widget.NewSeparator(), nil,
-		itemsList,
-	),
-	)
-	aboutTab := container.NewCenter(container.NewVBox(widget.NewRichTextFromMarkdown(string(mdAboutContent))))
-
-	metadata := fyne.CurrentApp().Metadata()
-	repoLink, _ := url.Parse("https://github.com/goxray")
 	tabs := container.NewAppTabs(
-		container.NewTabItemWithIcon("Configs", icon.Settings, configsTab),
-		container.NewTabItemWithIcon("About", theme.QuestionIcon(), aboutTab),
+		container.NewTabItemWithIcon( // Connections list settings tab
+			ConfigsText,
+			icon.Settings,
+			createSettingsContainer(list, onAdd, onUpdate, onDelete),
+		),
+		container.NewTabItemWithIcon( // About tab with static app info
+			AboutText,
+			theme.QuestionIcon(),
+			createAboutContainer(),
+		),
 	)
 	tabs.SetTabLocation(container.TabLocationTop)
 
 	w.SetContent(container.NewBorder(nil,
-		container.NewVBox(
+		container.NewVBox( // Footer with build info for the whole window
 			widget.NewSeparator(),
 			container.NewBorder(nil, nil, nil, widget.NewRichTextFromMarkdown(
 				fmt.Sprintf("[%s](%s) *v%s build %d*",
-					metadata.Name, repoLink.String(),
-					metadata.Version, metadata.Build),
+					fyne.CurrentApp().Metadata().Name,
+					repositoryLink,
+					fyne.CurrentApp().Metadata().Version,
+					fyne.CurrentApp().Metadata().Build),
 			)),
 		),
-		nil, nil, tabs,
+		nil, nil,
+		tabs, // Actual window content (tabs)
 	))
-	w.Resize(fyne.NewSize(700, 580))
 
 	return w
 }
 
+func createAboutContainer() *fyne.Container {
+	return container.NewCenter(container.NewVBox(widget.NewRichTextFromMarkdown(string(mdAboutContent))))
+}
+
+func createSettingsContainer[T ListItem](
+	list binding.DataList,
+	onAdd func(data FormData) error,
+	onUpdate func(FormData, T) error,
+	onDelete func(T) error,
+) *fyne.Container {
+	return container.NewBorder(nil, nil,
+		createAddForm(onAdd), nil, // Add form on the left
+		container.NewBorder( // All other space is occupied by connections list
+			nil, nil,
+			widget.NewSeparator(), nil,
+			container.NewBorder(
+				container.NewVBox(widget.NewLabel("Available connection links:"), widget.NewSeparator()),
+				nil, nil, nil, createDynamicList(list, onDelete, onUpdate),
+			),
+		),
+	)
+}
+
 func createAddForm(onAdd func(data FormData) error) *fyne.Container {
-	inputLink := &widget.Entry{PlaceHolder: "vless://example.com..."}
-	inputLabel := &widget.Entry{PlaceHolder: "Display name"}
+	inputLink := &widget.Entry{PlaceHolder: LinkPlaceholderText}
+	inputLabel := &widget.Entry{PlaceHolder: LinkNamePlaceholderText}
 	errLabel := &widget.Label{Importance: widget.DangerImportance}
 	errLabel.Hide()
 
+	handleError := func(err error) {
+		if err != nil {
+			errLabel.SetText(err.Error())
+			errLabel.Show()
+
+			return
+		}
+		errLabel.Hide()
+	}
+
 	addBtn := &widget.Button{
 		Icon: theme.ContentAddIcon(),
-		Text: "Add",
+		Text: AddText,
 		OnTapped: func() {
-			if err := onAdd(FormData{Label: inputLabel.Text, Link: inputLink.Text}); err != nil {
-				errLabel.SetText(err.Error())
-				errLabel.Show()
-				return
-			}
-			errLabel.Hide()
+			data := FormData{Label: inputLabel.Text, Link: inputLink.Text}
+			handleError(handleAddItem(data, onAdd))
 		},
 		Importance: widget.HighImportance,
 	}
 
-	return container.NewBorder(nil, nil, nil, container.NewVBox(
-		widget.NewLabel("Insert your connection URL"),
+	return container.NewVBox(
+		widget.NewLabel(InsertYourConnectionURLText),
 		inputLabel,
 		inputLink,
 		errLabel,
-		container.NewBorder(nil, nil, nil, addBtn),
-	))
+		container.NewBorder(nil, nil, nil, addBtn), // Fit button to the right side
+	)
 }
 
 func createDynamicList[T ListItem](
@@ -113,12 +168,12 @@ func createDynamicList[T ListItem](
 	onUpdate func(FormData, T) error,
 ) *fyne.Container {
 	saveBtn := &widget.Button{
-		Text:       "Update",
+		Text:       UpdateText,
 		Icon:       theme.DocumentSaveIcon(),
 		Importance: widget.HighImportance,
 	}
 	deleteBtn := &widget.Button{
-		Text:       "Delete",
+		Text:       DeleteText,
 		Icon:       theme.DeleteIcon(),
 		Importance: widget.DangerImportance,
 	}
@@ -196,17 +251,12 @@ func createDynamicList[T ListItem](
 		}
 
 		saveBtn.OnTapped = func() {
-			if val.Active() {
-				handleErr(fmt.Errorf("disconnect before editing"))
-
-				return
-			}
-
-			handleErr(onUpdate(FormData{Label: newLabelInput.Text, Link: newLinkInput.Text}, val.(T)))
+			data := FormData{Label: newLabelInput.Text, Link: newLinkInput.Text}
+			handleErr(handleUpdateItem(data, val.(T), onUpdate))
 		}
 		deleteBtn.OnTapped = func() {
 			if val.Active() {
-				handleErr(fmt.Errorf("disconnect before editing"))
+				handleErr(ErrChangeActiveItem)
 
 				return
 			}
@@ -216,6 +266,26 @@ func createDynamicList[T ListItem](
 	}
 
 	return listContainer
+}
+
+func handleAddItem(data FormData, onAdd func(FormData) error) error {
+	if err := data.Validate(); err != nil {
+		return err
+	}
+
+	return onAdd(data)
+}
+
+func handleUpdateItem[T ListItem](data FormData, val T, onUpdate func(FormData, T) error) error {
+	if val.Active() {
+		return ErrChangeActiveItem
+	}
+
+	if err := data.Validate(); err != nil {
+		return err
+	}
+
+	return onUpdate(data, val)
 }
 
 func getListItem(list binding.DataList, id widget.ListItemID) ListItem {
@@ -229,7 +299,12 @@ func getListItem(list binding.DataList, id widget.ListItemID) ListItem {
 	return untyped.(ListItem)
 }
 
-func disableAll(disable bool, buttons ...*widget.Button) {
+type disableWidget interface {
+	Disable()
+	Enable()
+}
+
+func disableAll(disable bool, buttons ...disableWidget) {
 	for _, btn := range buttons {
 		if disable {
 			btn.Disable()

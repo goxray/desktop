@@ -113,10 +113,6 @@ func DeleteItemH(list *ItemsList) func(itm *Item) error {
 
 func UpdateFormH(list *ItemsList) func(data window.FormData, itm *Item) error {
 	return func(updated window.FormData, item *Item) error {
-		if updated.Label == "" || updated.Link == "" {
-			return errors.New("label or link is empty")
-		}
-
 		proto, err := xray.ParseXrayConfig(updated.Link)
 		if err != nil {
 			return err
@@ -133,10 +129,6 @@ func UpdateFormH(list *ItemsList) func(data window.FormData, itm *Item) error {
 
 func AddFormH(list *ItemsList) func(data window.FormData) error {
 	return func(new window.FormData) error {
-		if new.Label == "" || new.Link == "" {
-			return errors.New("label or link is empty")
-		}
-
 		proto, err := xray.ParseXrayConfig(new.Link)
 		if err != nil {
 			return err
