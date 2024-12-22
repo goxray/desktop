@@ -66,16 +66,15 @@ func main() {
 	settingsLoader := NewSaveFile(a.Preferences())
 
 	// Tray menu setup.
-	var settingsWindow fyne.Window
+	var settingsWindow *window.SettingsDraft[*Item]
 	trayMenu.OnSettingsClick(func() {
 		if settingsWindow == nil {
-			settingsWindow = window.NewSettings[*Item](a, AddFormH(items), UpdateFormH(items), DeleteItemH(items), list)
-			settingsWindow.SetOnClosed(func() {
+			settingsWindow = window.NewSettingsDraft[*Item](a, list, AddFormH(items), UpdateFormH(items), DeleteItemH(items))
+			settingsWindow.Window().SetOnClosed(func() {
 				settingsWindow = nil
 			})
 		}
 		settingsWindow.Show()
-		settingsWindow.RequestFocus()
 	})
 	trayMenu.OnItemClick(ConnectHandler(trayMenu, client))
 

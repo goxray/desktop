@@ -1,8 +1,6 @@
 package window
 
 import (
-	_ "embed"
-	"errors"
 	"fmt"
 
 	"fyne.io/fyne/v2"
@@ -14,79 +12,56 @@ import (
 	"github.com/goxray/ui/icon"
 )
 
-const repositoryLink = "https://github.com/goxray"
+type SettingsDraft[T ListItem] struct {
+	window fyne.Window
+	list   binding.DataList
 
-// Texts for future translations.
-const (
-	SettingsText                = "Settings"
-	ConfigsText                 = "Configs"
-	AboutText                   = "About"
-	LinkPlaceholderText         = "vless://example.com..."
-	LinkNamePlaceholderText     = "Display name"
-	AddText                     = "Add"
-	UpdateText                  = "Update"
-	DeleteText                  = "Delete"
-	InsertYourConnectionURLText = "Insert your connection URL"
-
-	ErrChangeActiveText = "disconnect before editing"
-	ErrLabelOrLinkEmpty = "label or link empty"
-)
-
-var (
-	ErrChangeActiveItem     = errors.New(ErrChangeActiveText)
-	ErrEmptyUpdateFormValue = errors.New(ErrLabelOrLinkEmpty)
-)
-
-type FormData struct {
-	Label string
-	Link  string
+	onAdd    func(data FormData) error
+	onUpdate func(FormData, T) error
+	onDelete func(T) error
 }
 
-func (f *FormData) Validate() error {
-	if f.Label == "" || f.Link == "" {
-		return ErrEmptyUpdateFormValue
-	}
-
-	return nil
-}
-
-type ListItem interface {
-	Label() string
-	Link() string
-	XRayConfig() map[string]string
-	Active() bool
-}
-
-//go:embed about_static.md
-var mdAboutContent []byte
-
-func NewSettings[T ListItem](
+func NewSettingsDraft[T ListItem](
 	a fyne.App,
+	list binding.DataList,
 	onAdd func(data FormData) error,
 	onUpdate func(FormData, T) error,
 	onDelete func(T) error,
-	list binding.DataList,
-) fyne.Window {
-	w := a.NewWindow(SettingsText)
+) *SettingsDraft[T] {
+	w := a.NewWindow(settingsText)
 	w.CenterOnScreen()
 	w.RequestFocus()
 	w.Resize(fyne.NewSize(700, 580))
 
+	return &SettingsDraft[T]{
+		window:   w,
+		onAdd:    onAdd,
+		onUpdate: onUpdate,
+		onDelete: onDelete,
+		list:     list,
+	}
+}
+
+func (w *SettingsDraft[T]) Window() fyne.Window {
+	return w.window
+}
+
+func (w *SettingsDraft[T]) Show() {
 	tabs := container.NewAppTabs(
 		container.NewTabItemWithIcon( // Connections list settings tab
-			ConfigsText,
+			configsText,
 			icon.Settings,
-			createSettingsContainer(list, onAdd, onUpdate, onDelete),
+			w.createSettingsContainer(),
 		),
 		container.NewTabItemWithIcon( // About tab with static app info
-			AboutText,
+			aboutText,
 			theme.QuestionIcon(),
-			createAboutContainer(),
+			w.createAboutContainer(),
 		),
 	)
 	tabs.SetTabLocation(container.TabLocationTop)
 
-	w.SetContent(container.NewBorder(nil,
+	w.window.SetContent(container.NewBorder(nil,
 		container.NewVBox( // Footer with build info for the whole window
 			widget.NewSeparator(),
 			container.NewBorder(nil, nil, nil, widget.NewRichTextFromMarkdown(
@@ -101,60 +76,46 @@ func NewSettings[T ListItem](
 		tabs, // Actual window content (tabs)
 	))
 
-	return w
+	w.window.RequestFocus()
+	w.window.Show()
 }
 
-func createAboutContainer() *fyne.Container {
+func (w *SettingsDraft[T]) createAboutContainer() *fyne.Container {
 	return container.NewCenter(container.NewVBox(widget.NewRichTextFromMarkdown(string(mdAboutContent))))
 }
 
-func createSettingsContainer[T ListItem](
-	list binding.DataList,
-	onAdd func(data FormData) error,
-	onUpdate func(FormData, T) error,
-	onDelete func(T) error,
-) *fyne.Container {
+func (w *SettingsDraft[T]) createSettingsContainer() *fyne.Container {
 	return container.NewBorder(nil, nil,
-		createAddForm(onAdd), nil, // Add form on the left
+		w.createAddForm(), nil, // Add form on the left
 		container.NewBorder( // All other space is occupied by connections list
 			nil, nil,
 			widget.NewSeparator(), nil,
 			container.NewBorder(
 				container.NewVBox(widget.NewLabel("Available connection links:"), widget.NewSeparator()),
-				nil, nil, nil, createDynamicList(list, onDelete, onUpdate),
+				nil, nil, nil, w.createDynamicList(),
 			),
 		),
 	)
 }
 
-func createAddForm(onAdd func(data FormData) error) *fyne.Container {
-	inputLink := &widget.Entry{PlaceHolder: LinkPlaceholderText}
-	inputLabel := &widget.Entry{PlaceHolder: LinkNamePlaceholderText}
+func (w *SettingsDraft[T]) createAddForm() *fyne.Container {
+	inputLink := &widget.Entry{PlaceHolder: linkPlaceholderText}
+	inputLabel := &widget.Entry{PlaceHolder: linkNamePlaceholderText}
 	errLabel := &widget.Label{Importance: widget.DangerImportance}
 	errLabel.Hide()
 
-	handleError := func(err error) {
-		if err != nil {
-			errLabel.SetText(err.Error())
-			errLabel.Show()
-
-			return
-		}
-		errLabel.Hide()
-	}
-
 	addBtn := &widget.Button{
 		Icon: theme.ContentAddIcon(),
-		Text: AddText,
+		Text: addText,
 		OnTapped: func() {
 			data := FormData{Label: inputLabel.Text, Link: inputLink.Text}
-			handleError(handleAddItem(data, onAdd))
+			handleAddItem(data, errLabel, w.onAdd)
 		},
 		Importance: widget.HighImportance,
 	}
 
 	return container.NewVBox(
-		widget.NewLabel(InsertYourConnectionURLText),
+		widget.NewLabel(insertYourConnectionURLText),
 		inputLabel,
 		inputLink,
 		errLabel,
@@ -162,21 +123,9 @@ func createAddForm(onAdd func(data FormData) error) *fyne.Container {
 	)
 }
 
-func createDynamicList[T ListItem](
-	connectionsList binding.DataList,
-	onDelete func(itm T) error,
-	onUpdate func(FormData, T) error,
-) *fyne.Container {
-	saveBtn := &widget.Button{
-		Text:       UpdateText,
-		Icon:       theme.DocumentSaveIcon(),
-		Importance: widget.HighImportance,
-	}
-	deleteBtn := &widget.Button{
-		Text:       DeleteText,
-		Icon:       theme.DeleteIcon(),
-		Importance: widget.DangerImportance,
-	}
+func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
+	saveBtn := &widget.Button{Text: updateText, Icon: theme.DocumentSaveIcon(), Importance: widget.HighImportance}
+	deleteBtn := &widget.Button{Text: deleteText, Icon: theme.DeleteIcon(), Importance: widget.DangerImportance}
 
 	configInfo := widget.NewRichTextFromMarkdown("configuration info")
 	errLabel := &widget.Label{Text: "error", Importance: widget.DangerImportance}
@@ -195,7 +144,7 @@ func createDynamicList[T ListItem](
 	)
 	itemSettings.Hidden = true
 
-	list := widget.NewListWithData(connectionsList,
+	list := widget.NewListWithData(w.list,
 		func() fyne.CanvasObject { return nil },
 		func(_ binding.DataItem, _ fyne.CanvasObject) {},
 	)
@@ -210,7 +159,7 @@ func createDynamicList[T ListItem](
 
 	listContainer := container.NewBorder(nil, itemSettings, nil, nil, list)
 	list.UpdateItem = func(id widget.ListItemID, o fyne.CanvasObject) {
-		val := getListItem(connectionsList, id)
+		val := getListItem(w.list, id)
 		disableAll(val.Active(), saveBtn, deleteBtn)
 		activeIcon := o.(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Icon)
 		if val.Active() {
@@ -228,7 +177,7 @@ func createDynamicList[T ListItem](
 		itemSettings.Show()
 		defer itemSettings.Refresh()
 
-		val := getListItem(connectionsList, id)
+		val := getListItem(w.list, id)
 		disableAll(val.Active(), saveBtn, deleteBtn)
 
 		configInfo.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
@@ -252,33 +201,41 @@ func createDynamicList[T ListItem](
 
 		saveBtn.OnTapped = func() {
 			data := FormData{Label: newLabelInput.Text, Link: newLinkInput.Text}
-			handleErr(handleUpdateItem(data, val.(T), onUpdate))
+			handleErr(handleUpdateItem(data, val.(T), w.onUpdate))
 		}
 		deleteBtn.OnTapped = func() {
 			if val.Active() {
-				handleErr(ErrChangeActiveItem)
+				handleErr(errChangeActiveItem)
 
 				return
 			}
 
-			handleErr(onDelete(val.(T)))
+			handleErr(w.onDelete(val.(T)))
 		}
 	}
 
 	return listContainer
 }
 
-func handleAddItem(data FormData, onAdd func(FormData) error) error {
+func handleAddItem(data FormData, errLabel *widget.Label, onAdd func(FormData) error) {
 	if err := data.Validate(); err != nil {
-		return err
+		errLabel.SetText(err.Error())
+		errLabel.Show()
+
+		return
 	}
 
-	return onAdd(data)
+	if err := onAdd(data); err != nil {
+		errLabel.SetText(err.Error())
+		errLabel.Show()
+
+		return
+	}
 }
 
 func handleUpdateItem[T ListItem](data FormData, val T, onUpdate func(FormData, T) error) error {
 	if val.Active() {
-		return ErrChangeActiveItem
+		return errChangeActiveItem
 	}
 
 	if err := data.Validate(); err != nil {
