@@ -1,0 +1,1 @@
+fyne package -os darwin
