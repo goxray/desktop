@@ -21,6 +21,7 @@ const (
 	updateText                  = "Update"
 	deleteText                  = "Delete"
 	insertYourConnectionURLText = "Insert your connection URL"
+	configsListHeaderText       = "Available connection configurations:"
 
 	errChangeActiveText = "disconnect before editing"
 	errLabelOrLinkEmpty = "label or link empty"

@@ -5,8 +5,9 @@ go 1.23.3
 require (
 	fyne.io/fyne/v2 v2.5.3
 	fyne.io/systray v1.11.0
+	github.com/ajstarks/fc v0.0.0-20240825205253-42aeab80ccce
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264
-	github.com/goxray/tun v0.0.0-20241220134535-9a0cc06d918c
+	github.com/goxray/tun v0.0.0-20241223225711-da128c38e85f
 	github.com/lilendian0x00/xray-knife v1.6.14-0.20241211194505-363c66ecace3
 )
 

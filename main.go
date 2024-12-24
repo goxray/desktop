@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	_ "net/http/pprof"
 	"os"
 	"runtime/debug"
 	_ "unsafe"
@@ -18,9 +19,10 @@ import (
 	"github.com/lilendian0x00/xray-knife/xray"
 
 	"github.com/goxray/ui/icon"
+	"github.com/goxray/ui/internal/netchart"
 	"github.com/goxray/ui/internal/osspecific/dock"
-	"github.com/goxray/ui/internal/osspecific/root"
 	"github.com/goxray/ui/internal/traylist"
+	"github.com/goxray/ui/theme"
 	"github.com/goxray/ui/window"
 )
 
@@ -40,7 +42,7 @@ var MenuIcons = &traylist.IconSet{
 
 func init() {
 	debug.SetGCPercent(10)
-	root.PromptRootAccess()
+	// root.PromptRootAccess()
 }
 
 func onstart() {
@@ -50,7 +52,7 @@ func onstart() {
 
 func main() {
 	a := app.New()
-	a.Settings().SetTheme(&AppTheme{})
+	a.Settings().SetTheme(&theme.AppTheme{})
 	a.Lifecycle().SetOnStarted(onstart)
 
 	client, err := vpn.NewClientWithOpts(vpn.Config{
@@ -64,6 +66,12 @@ func main() {
 	list := binding.BindUntypedList(items.AllUntyped())
 	trayMenu := traylist.NewDefault[*Item](AppTitleName, toDesktopApp(a), MenuIcons)
 	settingsLoader := NewSaveFile(a.Preferences())
+
+	// TODO: for debugging and prototyping, remove!
+	networkStatsRecorder := netchart.NewRecorder(client) // TODO: we should spawn a recorder for every client connection
+	networkStatsRecorder.Start()
+	defer networkStatsRecorder.Stop()
+	window.Recorder = networkStatsRecorder
 
 	// Tray menu setup.
 	var settingsWindow *window.SettingsDraft[*Item]

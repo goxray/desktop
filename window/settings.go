@@ -2,8 +2,10 @@ package window
 
 import (
 	"fmt"
+	"image/color"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/theme"
@@ -91,7 +93,7 @@ func (w *SettingsDraft[T]) createSettingsContainer() *fyne.Container {
 			nil, nil,
 			widget.NewSeparator(), nil,
 			container.NewBorder(
-				container.NewVBox(widget.NewLabel("Available connection links:"), widget.NewSeparator()),
+				container.NewVBox(widget.NewLabel(configsListHeaderText), widget.NewSeparator()),
 				nil, nil, nil, w.createDynamicList(),
 			),
 		),
@@ -124,7 +126,7 @@ func (w *SettingsDraft[T]) createAddForm() *fyne.Container {
 }
 
 func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
-	saveBtn := &widget.Button{Text: updateText, Icon: theme.DocumentSaveIcon(), Importance: widget.HighImportance}
+	saveBtn := &widget.Button{Text: updateText, Icon: theme.DocumentCreateIcon(), Importance: widget.HighImportance}
 	deleteBtn := &widget.Button{Text: deleteText, Icon: theme.DeleteIcon(), Importance: widget.DangerImportance}
 
 	configInfo := widget.NewRichTextFromMarkdown("configuration info")
@@ -132,6 +134,8 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 	errLabel.Hide()
 	newLabelInput := widget.NewEntry()
 	newLinkInput := widget.NewEntry()
+
+	netStatsChart := container.NewWithoutLayout()
 	itemSettings := container.NewBorder(
 		widget.NewSeparator(),
 		container.NewVBox(
@@ -140,7 +144,7 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 			container.NewBorder(nil, nil, nil, deleteBtn, saveBtn),
 		), nil, nil,
 
-		configInfo,
+		container.NewBorder(nil, nil, container.NewVScroll(configInfo), nil, netStatsChart),
 	)
 	itemSettings.Hidden = true
 
@@ -150,9 +154,15 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 	)
 	list.HideSeparators = true
 	list.CreateItem = func() fyne.CanvasObject {
+		dataStats := container.NewHBox(
+			container.NewPadded(canvas.NewText("↑0.0 GB", color.RGBA{255, 255, 255, 180})),
+			container.NewPadded(canvas.NewText("↓0.0 GB", color.RGBA{255, 255, 255, 180})),
+		)
+		dataStats.Hide() // TODO: add when has stats
+
 		cnt := container.NewBorder(nil, nil,
 			container.NewPadded(widget.NewIcon(nil)),
-			widget.NewRichTextFromMarkdown(""), widget.NewLabel("template"),
+			dataStats, widget.NewLabel("template"),
 		)
 		return cnt
 	}
@@ -183,6 +193,9 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		configInfo.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
 		newLabelInput.SetText(val.Label())
 		newLinkInput.SetText(val.Link())
+
+		netStatsChart.RemoveAll()
+		netStatsChart.Add(getNetStatChartsDemo(fyne.NewSize(250, 100)))
 
 		// wrap err handling
 		handleErr := func(err error) {

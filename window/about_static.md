@@ -3,7 +3,7 @@
 
 This project brings fully functioning [XRay](https://github.com/XTLS/Xray-core) VPN client implementation in Go.
 
-#### What is XRay?
+## What is XRay?
 Please visit [https://xtls.github.io/en](https://xtls.github.io/en) for more info.
 
 ## How it works
