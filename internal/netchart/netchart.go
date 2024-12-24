@@ -107,6 +107,7 @@ func (c *Chart) UpdateNamed(stats map[string][]float64, clrs map[string]color.RG
 	rect.SetMinSize(fyne.NewSize(float32(c.canvas.Width), float32(c.canvas.Height)))
 	c.canvas.Container.RemoveAll()
 	c.canvas.Container.Add(rect)
+	defer c.canvas.Container.Refresh()
 
 	size := 5.
 	for i := range charts {

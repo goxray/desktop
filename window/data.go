@@ -50,4 +50,6 @@ type ListItem interface {
 	Link() string
 	XRayConfig() map[string]string
 	Active() bool
+
+	Recorder() RecorderI // TODO: verify implementation
 }

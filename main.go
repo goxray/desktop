@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -19,8 +18,8 @@ import (
 	"github.com/lilendian0x00/xray-knife/xray"
 
 	"github.com/goxray/ui/icon"
-	"github.com/goxray/ui/internal/netchart"
 	"github.com/goxray/ui/internal/osspecific/dock"
+	"github.com/goxray/ui/internal/osspecific/root"
 	"github.com/goxray/ui/internal/traylist"
 	"github.com/goxray/ui/theme"
 	"github.com/goxray/ui/window"
@@ -42,7 +41,7 @@ var MenuIcons = &traylist.IconSet{
 
 func init() {
 	debug.SetGCPercent(10)
-	// root.PromptRootAccess()
+	root.PromptRootAccess()
 }
 
 func onstart() {
@@ -67,12 +66,6 @@ func main() {
 	trayMenu := traylist.NewDefault[*Item](AppTitleName, toDesktopApp(a), MenuIcons)
 	settingsLoader := NewSaveFile(a.Preferences())
 
-	// TODO: for debugging and prototyping, remove!
-	networkStatsRecorder := netchart.NewRecorder(client) // TODO: we should spawn a recorder for every client connection
-	networkStatsRecorder.Start()
-	defer networkStatsRecorder.Stop()
-	window.Recorder = networkStatsRecorder
-
 	// Tray menu setup.
 	var settingsWindow *window.SettingsDraft[*Item]
 	trayMenu.OnSettingsClick(func() {
@@ -89,7 +82,7 @@ func main() {
 	// Update all UI elements when items are updated.
 	items.OnAdd(func(item *Item) {
 		trayMenu.Add(item.Label(), item)
-		if err := list.Append(item); err != nil {
+		if err := list.Prepend(item); err != nil {
 			slog.Warn(err.Error())
 		}
 	})
@@ -151,18 +144,18 @@ func ConnectHandler(trayItems *traylist.List[*Item], client *vpn.Client) func(id
 	return func(id int) error {
 		// If clicked item is connected - just disconnect and return.
 		if trayItems.IsActive(id) {
-			return client.Disconnect(context.Background())
+			return trayItems.Get(id).Disconnect()
 		}
 
 		// Disconnect active connections before connecting the clicked one.
 		if trayItems.HasActive() {
-			err := client.Disconnect(context.Background())
+			err := trayItems.GetActive().Disconnect()
 			if err != nil {
 				return err
 			}
 		}
 
-		return client.Connect(trayItems.Get(id).Link())
+		return trayItems.Get(id).Connect()
 	}
 }
 

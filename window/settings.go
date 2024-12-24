@@ -111,7 +111,12 @@ func (w *SettingsDraft[T]) createAddForm() *fyne.Container {
 		Text: addText,
 		OnTapped: func() {
 			data := FormData{Label: inputLabel.Text, Link: inputLink.Text}
-			handleAddItem(data, errLabel, w.onAdd)
+			if handleAddItem(data, errLabel, w.onAdd) {
+				inputLabel.Text = ""
+				inputLink.Text = ""
+				inputLabel.Refresh()
+				inputLink.Refresh()
+			}
 		},
 		Importance: widget.HighImportance,
 	}
@@ -135,7 +140,7 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 	newLabelInput := widget.NewEntry()
 	newLinkInput := widget.NewEntry()
 
-	netStatsChart := container.NewWithoutLayout()
+	netStatsChart := container.NewWithoutLayout(&fyne.Container{})
 	itemSettings := container.NewBorder(
 		widget.NewSeparator(),
 		container.NewVBox(
@@ -183,6 +188,9 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 			"%s [%s]", val.Label(), val.XRayConfig()["Address"],
 		))
 	}
+
+	// Cache active charts
+	activeCharts := map[widget.ListItemID]*fyne.Container{}
 	list.OnSelected = func(id widget.ListItemID) {
 		itemSettings.Show()
 		defer itemSettings.Refresh()
@@ -194,8 +202,11 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		newLabelInput.SetText(val.Label())
 		newLinkInput.SetText(val.Link())
 
-		netStatsChart.RemoveAll()
-		netStatsChart.Add(getNetStatChartsDemo(fyne.NewSize(250, 100)))
+		if _, ok := activeCharts[id]; !ok {
+			activeCharts[id] = getNetStatChartsDemo(fyne.NewSize(250, 100), val.Recorder())
+		}
+		netStatsChart.Objects[0] = activeCharts[id]
+		netStatsChart.Refresh()
 
 		// wrap err handling
 		handleErr := func(err error) {
@@ -230,20 +241,22 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 	return listContainer
 }
 
-func handleAddItem(data FormData, errLabel *widget.Label, onAdd func(FormData) error) {
+func handleAddItem(data FormData, errLabel *widget.Label, onAdd func(FormData) error) bool {
 	if err := data.Validate(); err != nil {
 		errLabel.SetText(err.Error())
 		errLabel.Show()
 
-		return
+		return false
 	}
 
 	if err := onAdd(data); err != nil {
 		errLabel.SetText(err.Error())
 		errLabel.Show()
 
-		return
+		return false
 	}
+
+	return true
 }
 
 func handleUpdateItem[T ListItem](data FormData, val T, onUpdate func(FormData, T) error) error {

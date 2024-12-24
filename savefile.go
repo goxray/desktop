@@ -52,35 +52,7 @@ func (s *SaveFile) Load(list *ItemsList) {
 	}
 
 	for _, item := range items {
+		item.Init()
 		list.Add(item)
 	}
 }
-
-//
-// func SaveFileSave(pref fyne.Preferences, list *ItemsList[*Item]) {
-// 	tosave := make([]*Item, 0, len(list.All()))
-// 	for _, item := range list.All() {
-// 		if item == nil {
-// 			continue
-// 		}
-// 		tosave = append(tosave, item)
-// 	}
-//
-// 	b, err := json.MarshalIndent(tosave, "", "  ")
-// 	if err != nil {
-// 		slog.Warn(err.Error())
-// 	}
-//
-// 	pref.SetString(itemsConfigKey, string(b))
-// }
-//
-// func SaveFileLoad(pref fyne.Preferences, list *ItemsList[*Item]) {
-// 	items := make([]*Item, 0)
-// 	if err := json.Unmarshal([]byte(pref.StringWithFallback(itemsConfigKey, EmptyItemsConfig)), &items); err != nil {
-// 		slog.Error("failed to unmarshal tray items: %v", err)
-// 	}
-//
-// 	for _, item := range items {
-// 		list.Add(item)
-// 	}
-// }

@@ -1,7 +1,17 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log/slog"
+	"os"
+
+	"github.com/goxray/tun/pkg/client"
+	vpn "github.com/goxray/tun/pkg/client"
 	"github.com/lilendian0x00/xray-knife/xray"
+
+	"github.com/goxray/ui/internal/netchart"
+	"github.com/goxray/ui/window"
 )
 
 type Item struct {
@@ -10,6 +20,9 @@ type Item struct {
 	XRyConfigVal map[string]string `json:"xray_config"`
 
 	active bool
+
+	client   *client.Client
+	recorder *netchart.Recorder
 }
 
 func NewItem(label, link string, cfg xray.GeneralConfig) *Item {
@@ -19,7 +32,22 @@ func NewItem(label, link string, cfg xray.GeneralConfig) *Item {
 	}
 	itm.XRyConfigVal = itm.xrayBaseConfigToMap(cfg)
 
+	itm.Init()
+
 	return itm
+}
+
+func (c *Item) Init() {
+	cl, err := vpn.NewClientWithOpts(vpn.Config{
+		Logger: slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})),
+	})
+	if err != nil {
+		panic(fmt.Errorf("create vpn client: %v", err))
+	}
+	c.client = cl
+
+	c.recorder = netchart.NewRecorder(c.client)
+	c.recorder.Start()
 }
 
 func (c *Item) Active() bool {
@@ -28,6 +56,22 @@ func (c *Item) Active() bool {
 
 func (c *Item) SetActive(active bool) {
 	c.active = active
+}
+
+func (c *Item) Connect() error {
+	return c.client.Connect(c.Link())
+}
+
+func (c *Item) Disconnect() error {
+	return c.client.Disconnect(context.Background())
+}
+
+func (c *Item) Recorder() window.RecorderI {
+	if c.client == nil {
+		c.Init()
+	}
+
+	return c.recorder
 }
 
 func (c *Item) Label() string {
