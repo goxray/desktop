@@ -27,11 +27,13 @@ type Recorder struct {
 	totalWrite      int
 }
 
+// NewRecorder creates a default Recorder
+// TODO: Decrease detalization for old data as the time goes on to allow for longer ranges charts.
 func NewRecorder(s Source) *Recorder {
 	return &Recorder{
 		base:        s,
 		interval:    time.Second, // store data value per interval
-		recordLimit: 60 * 15,     // store and record only last 15 minutes of data
+		recordLimit: 60 * 2,      // store and record only last 2 minutes of data
 		done:        make(chan struct{}),
 	}
 }
