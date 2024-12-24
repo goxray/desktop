@@ -33,7 +33,7 @@ func NewSettingsDraft[T ListItem](
 	w := a.NewWindow(settingsText)
 	w.CenterOnScreen()
 	w.RequestFocus()
-	w.Resize(fyne.NewSize(700, 580))
+	w.Resize(fyne.NewSize(750, 450))
 
 	return &SettingsDraft[T]{
 		window:   w,
@@ -163,7 +163,6 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 			container.NewPadded(canvas.NewText("↑0.0 GB", color.RGBA{255, 255, 255, 180})),
 			container.NewPadded(canvas.NewText("↓0.0 GB", color.RGBA{255, 255, 255, 180})),
 		)
-		dataStats.Hide() // TODO: add when has stats
 
 		cnt := container.NewBorder(nil, nil,
 			container.NewPadded(widget.NewIcon(nil)),
@@ -182,6 +181,12 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		} else {
 			activeIcon.SetResource(nil)
 		}
+
+		stats := o.(*fyne.Container).Objects[2].(*fyne.Container)
+		readBytes := fmt.Sprintf("↑%s", bytesToString(val.Recorder().BytesRead()))
+		writtenBytes := fmt.Sprintf("↓%s", bytesToString(val.Recorder().BytesWritten()))
+		stats.Objects[0].(*fyne.Container).Objects[0] = canvas.NewText(readBytes, color.RGBA{255, 255, 255, 180})
+		stats.Objects[1].(*fyne.Container).Objects[0] = canvas.NewText(writtenBytes, color.RGBA{255, 255, 255, 180})
 		o.Refresh()
 
 		o.(*fyne.Container).Objects[0].(*widget.Label).SetText(fmt.Sprintf(
@@ -239,6 +244,19 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 	}
 
 	return listContainer
+}
+
+func bytesToString(bytes int) string {
+	const bytesToMegabit = 125000
+	const megaBitToGB = 8000
+	postfix := "Mb"
+	value := float64(bytes) / bytesToMegabit
+	if value > 1000 { // threshold to turn into GB
+		value = value / megaBitToGB
+		postfix = "GB"
+	}
+
+	return fmt.Sprintf("%.2f %s", value, postfix)
 }
 
 func handleAddItem(data FormData, errLabel *widget.Label, onAdd func(FormData) error) bool {

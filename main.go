@@ -134,6 +134,10 @@ func AddFormH(list *ItemsList) func(data window.FormData) error {
 			return err
 		}
 
+		if len(proto.ConvertToGeneralConfig().Remark) > 32 {
+			return errors.New("remark value is too long")
+		}
+
 		list.Add(NewItem(new.Label, new.Link, proto.ConvertToGeneralConfig()))
 
 		return nil

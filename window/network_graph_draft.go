@@ -15,6 +15,8 @@ import (
 type RecorderI interface {
 	Read() []float64
 	Written() []float64
+	BytesRead() int
+	BytesWritten() int
 	RecordInterval() time.Duration
 }
 
