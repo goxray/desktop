@@ -174,7 +174,7 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 	listContainer := container.NewBorder(nil, itemSettings, nil, nil, list)
 	list.UpdateItem = func(id widget.ListItemID, o fyne.CanvasObject) {
 		val := getListItem(w.list, id)
-		disableAll(val.Active(), saveBtn, deleteBtn)
+		disableAll(val.Active(), saveBtn, deleteBtn, newLabelInput, newLinkInput)
 		activeIcon := o.(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Icon)
 		if val.Active() {
 			activeIcon.SetResource(icon.ListActive)
@@ -201,7 +201,7 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		defer itemSettings.Refresh()
 
 		val := getListItem(w.list, id)
-		disableAll(val.Active(), saveBtn, deleteBtn)
+		disableAll(val.Active(), saveBtn, deleteBtn, newLabelInput, newLinkInput)
 
 		configInfo.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
 		newLabelInput.SetText(val.Label())
@@ -303,15 +303,17 @@ func getListItem(list binding.DataList, id widget.ListItemID) ListItem {
 type disableWidget interface {
 	Disable()
 	Enable()
+	Refresh()
 }
 
-func disableAll(disable bool, buttons ...disableWidget) {
-	for _, btn := range buttons {
+func disableAll(disable bool, widgets ...disableWidget) {
+	for _, wdg := range widgets {
 		if disable {
-			btn.Disable()
+			wdg.Disable()
 		} else {
-			btn.Enable()
+			wdg.Enable()
 		}
+		wdg.Refresh()
 	}
 }
 
