@@ -10,8 +10,9 @@ import (
 var _ fyne.Theme = (*AppTheme)(nil)
 
 const (
-	ColorNameGraphGreen = "graph_green"
-	ColorNameGraphBlue  = "graph_blue"
+	ColorNameGraphGreen = "goxray_theme_graph_green"
+	ColorNameGraphBlue  = "goxray_theme_graph_blue"
+	ColorNameTextMuted  = "goxray_theme_text_muted"
 )
 
 // AppTheme represents small styling additions to fyne default theme.
@@ -59,10 +60,14 @@ func (m AppTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color 
 	case theme.VariantLight:
 		switch c {
 		case ColorNameGraphGreen:
-			return color.RGBA{120, 235, 139, 255}
+			return color.RGBA{89, 217, 110, 255}
 		case ColorNameGraphBlue:
 			return color.RGBA{105, 150, 255, 255}
 		}
+	}
+	switch c {
+	case ColorNameTextMuted:
+		return color.RGBA{255, 255, 255, 180}
 	}
 
 	return theme.DefaultTheme().Color(c, v)

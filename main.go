@@ -82,7 +82,7 @@ func main() {
 	// Update all UI elements when items are updated.
 	items.OnAdd(func(item *Item) {
 		trayMenu.Add(item.Label(), item)
-		if err := list.Prepend(item); err != nil {
+		if err := list.Append(item); err != nil {
 			slog.Warn(err.Error())
 		}
 	})

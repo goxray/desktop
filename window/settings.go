@@ -12,6 +12,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/goxray/ui/icon"
+	customtheme "github.com/goxray/ui/theme"
+	customwidget "github.com/goxray/ui/window/widget"
 )
 
 type SettingsDraft[T ListItem] struct {
@@ -160,17 +162,19 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 	list.HideSeparators = true
 	list.CreateItem = func() fyne.CanvasObject {
 		dataStats := container.NewHBox(
-			container.NewPadded(canvas.NewText("↑0.0 GB", color.RGBA{255, 255, 255, 180})),
-			container.NewPadded(canvas.NewText("↓0.0 GB", color.RGBA{255, 255, 255, 180})),
+			container.NewPadded(canvas.NewText("↑0.0 GB", theme.Color(customtheme.ColorNameTextMuted))),
+			container.NewPadded(canvas.NewText("↓0.0 GB", theme.Color(customtheme.ColorNameTextMuted))),
 		)
 
 		cnt := container.NewBorder(nil, nil,
 			container.NewPadded(widget.NewIcon(nil)),
-			dataStats, widget.NewLabel("template"),
+			dataStats, container.NewHBox(widget.NewLabel("template"), container.NewHBox()),
 		)
 		return cnt
 	}
 
+	// Cache active charts
+	activeCharts := map[widget.ListItemID]*fyne.Container{}
 	listContainer := container.NewBorder(nil, itemSettings, nil, nil, list)
 	list.UpdateItem = func(id widget.ListItemID, o fyne.CanvasObject) {
 		val := getListItem(w.list, id)
@@ -189,13 +193,23 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		stats.Objects[1].(*fyne.Container).Objects[0] = canvas.NewText(writtenBytes, color.RGBA{255, 255, 255, 180})
 		o.Refresh()
 
-		o.(*fyne.Container).Objects[0].(*widget.Label).SetText(fmt.Sprintf(
+		o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label).SetText(fmt.Sprintf(
 			"%s [%s]", val.Label(), val.XRayConfig()["Address"],
 		))
+
+		if _, ok := activeCharts[id]; !ok {
+			activeCharts[id] = getNetStatChartsDemo(fyne.NewSize(250, 100), val.Recorder())
+		}
+
+		if len(o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects) == 0 {
+			o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects = []fyne.CanvasObject{
+				customwidget.NewBadge(val.XRayConfig()["Protocol"], theme.Color(theme.ColorNamePrimary)),
+				customwidget.NewBadge(val.XRayConfig()["TLS"], theme.Color(theme.ColorNameSuccess)),
+			}
+		}
+
 	}
 
-	// Cache active charts
-	activeCharts := map[widget.ListItemID]*fyne.Container{}
 	list.OnSelected = func(id widget.ListItemID) {
 		itemSettings.Show()
 		defer itemSettings.Refresh()
@@ -203,15 +217,12 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		val := getListItem(w.list, id)
 		disableAll(val.Active(), saveBtn, deleteBtn, newLabelInput, newLinkInput)
 
+		netStatsChart.Objects[0] = activeCharts[id]
+		netStatsChart.Refresh()
+
 		configInfo.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
 		newLabelInput.SetText(val.Label())
 		newLinkInput.SetText(val.Link())
-
-		if _, ok := activeCharts[id]; !ok {
-			activeCharts[id] = getNetStatChartsDemo(fyne.NewSize(250, 100), val.Recorder())
-		}
-		netStatsChart.Objects[0] = activeCharts[id]
-		netStatsChart.Refresh()
 
 		// wrap err handling
 		handleErr := func(err error) {
