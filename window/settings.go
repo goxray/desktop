@@ -1,8 +1,8 @@
 package window
 
 import (
+	"context"
 	"fmt"
-	"image/color"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/goxray/ui/icon"
 	customtheme "github.com/goxray/ui/theme"
+	"github.com/goxray/ui/window/form"
 	customwidget "github.com/goxray/ui/window/widget"
 )
 
@@ -133,25 +134,15 @@ func (w *SettingsDraft[T]) createAddForm() *fyne.Container {
 }
 
 func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
-	saveBtn := &widget.Button{Text: updateText, Icon: theme.DocumentCreateIcon(), Importance: widget.HighImportance}
-	deleteBtn := &widget.Button{Text: deleteText, Icon: theme.DeleteIcon(), Importance: widget.DangerImportance}
-
-	configInfo := widget.NewRichTextFromMarkdown("configuration info")
-	errLabel := &widget.Label{Text: "error", Importance: widget.DangerImportance}
-	errLabel.Hide()
-	newLabelInput := widget.NewEntry()
-	newLinkInput := widget.NewEntry()
+	updateForm := form.NewUpdateConfig(updateText, deleteText)
+	configInfoText := customwidget.NewTextWithCopy(w.window.Clipboard())
 
 	netStatsChart := container.NewWithoutLayout(&fyne.Container{})
 	itemSettings := container.NewBorder(
 		widget.NewSeparator(),
-		container.NewVBox(
-			widget.NewSeparator(),
-			container.NewVBox(errLabel, newLabelInput, newLinkInput),
-			container.NewBorder(nil, nil, nil, deleteBtn, saveBtn),
-		), nil, nil,
-
-		container.NewBorder(nil, nil, container.NewVScroll(configInfo), nil, netStatsChart),
+		updateForm.Container(),
+		nil, nil,
+		container.NewBorder(nil, nil, netStatsChart, nil, configInfoText.Container()),
 	)
 	itemSettings.Hidden = true
 
@@ -160,6 +151,11 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		func(_ binding.DataItem, _ fyne.CanvasObject) {},
 	)
 	list.HideSeparators = true
+
+	// Cache active charts
+	activeCharts := map[widget.ListItemID]*fyne.Container{}
+	listContainer := container.NewBorder(nil, itemSettings, nil, nil, list)
+
 	list.CreateItem = func() fyne.CanvasObject {
 		dataStats := container.NewHBox(
 			container.NewPadded(canvas.NewText("↑0.0 GB", theme.Color(customtheme.ColorNameTextMuted))),
@@ -172,13 +168,9 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		)
 		return cnt
 	}
-
-	// Cache active charts
-	activeCharts := map[widget.ListItemID]*fyne.Container{}
-	listContainer := container.NewBorder(nil, itemSettings, nil, nil, list)
 	list.UpdateItem = func(id widget.ListItemID, o fyne.CanvasObject) {
 		val := getListItem(w.list, id)
-		disableAll(val.Active(), saveBtn, deleteBtn, newLabelInput, newLinkInput)
+		updateForm.Disable(val.Active())
 		activeIcon := o.(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Icon)
 		if val.Active() {
 			activeIcon.SetResource(icon.ListActive)
@@ -189,8 +181,8 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		stats := o.(*fyne.Container).Objects[2].(*fyne.Container)
 		readBytes := fmt.Sprintf("↑%s", bytesToString(val.Recorder().BytesRead()))
 		writtenBytes := fmt.Sprintf("↓%s", bytesToString(val.Recorder().BytesWritten()))
-		stats.Objects[0].(*fyne.Container).Objects[0] = canvas.NewText(readBytes, color.RGBA{255, 255, 255, 180})
-		stats.Objects[1].(*fyne.Container).Objects[0] = canvas.NewText(writtenBytes, color.RGBA{255, 255, 255, 180})
+		stats.Objects[0].(*fyne.Container).Objects[0] = canvas.NewText(readBytes, theme.Color(customtheme.ColorNameTextMuted))
+		stats.Objects[1].(*fyne.Container).Objects[0] = canvas.NewText(writtenBytes, theme.Color(customtheme.ColorNameTextMuted))
 		o.Refresh()
 
 		o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label).SetText(fmt.Sprintf(
@@ -198,52 +190,48 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		))
 
 		if _, ok := activeCharts[id]; !ok {
-			activeCharts[id] = getNetStatChartsDemo(fyne.NewSize(250, 100), val.Recorder())
+			activeCharts[id] = getNetStatChartsDemo(context.Background(), fyne.NewSize(250, 100), val.Recorder())
 		}
 
 		if len(o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects) == 0 {
 			o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects = []fyne.CanvasObject{
-				customwidget.NewBadge(val.XRayConfig()["Protocol"], theme.Color(theme.ColorNamePrimary)),
-				customwidget.NewBadge(val.XRayConfig()["TLS"], theme.Color(theme.ColorNameSuccess)),
+				customwidget.NewBadge(val.XRayConfig()["Protocol"], theme.Color(customtheme.ColorNameTextMuted)),
+				customwidget.NewBadge(val.XRayConfig()["Type"], theme.Color(customtheme.ColorNameTextMuted)),
+				customwidget.NewBadge(val.XRayConfig()["TLS"], theme.Color(customtheme.ColorNameTextMuted)),
 			}
 		}
-
 	}
-
 	list.OnSelected = func(id widget.ListItemID) {
 		itemSettings.Show()
 		defer itemSettings.Refresh()
 
 		val := getListItem(w.list, id)
-		disableAll(val.Active(), saveBtn, deleteBtn, newLabelInput, newLinkInput)
+		updateForm.Disable(val.Active())
+		updateForm.SetInputs(val.Label(), val.Link())
 
 		netStatsChart.Objects[0] = activeCharts[id]
 		netStatsChart.Refresh()
-
-		configInfo.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
-		newLabelInput.SetText(val.Label())
-		newLinkInput.SetText(val.Link())
+		configInfoText.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
 
 		// wrap err handling
 		handleErr := func(err error) {
 			if err != nil {
-				errLabel.SetText(err.Error())
-				errLabel.Show()
+				updateForm.SetError(err)
 
 				return
 			}
 			list.UnselectAll()
-			errLabel.Hide()
+			updateForm.SetError(nil)
 			itemSettings.Refresh()
 			itemSettings.Hide()
 			listContainer.Refresh()
 		}
 
-		saveBtn.OnTapped = func() {
-			data := FormData{Label: newLabelInput.Text, Link: newLinkInput.Text}
+		updateForm.OnUpdate(func() {
+			data := FormData{Label: updateForm.InputLabel(), Link: updateForm.InputLink()}
 			handleErr(handleUpdateItem(data, val.(T), w.onUpdate))
-		}
-		deleteBtn.OnTapped = func() {
+		})
+		updateForm.OnDelete(func() {
 			if val.Active() {
 				handleErr(errChangeActiveItem)
 
@@ -251,7 +239,7 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 			}
 
 			handleErr(w.onDelete(val.(T)))
-		}
+		})
 	}
 
 	return listContainer
@@ -343,7 +331,6 @@ func xrayConfigToMd(x map[string]string) string {
 		}
 
 		str += fmt.Sprintf("**%s**: %s\n\n", k, x[k])
-
 	}
 
 	return str

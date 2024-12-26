@@ -1,6 +1,7 @@
 package window
 
 import (
+	"context"
 	"image/color"
 	"log"
 	"time"
@@ -21,7 +22,7 @@ type RecorderI interface {
 }
 
 // TODO: move to netchart pkg?
-func getNetStatChartsDemo(size fyne.Size, recorder RecorderI) *fyne.Container {
+func getNetStatChartsDemo(ctx context.Context, size fyne.Size, recorder RecorderI) *fyne.Container {
 	const uplinkName, downlinkName = " ● upload", "● download"
 	data := map[string][]float64{uplinkName: {}, downlinkName: {}}
 
@@ -41,7 +42,12 @@ func getNetStatChartsDemo(size fyne.Size, recorder RecorderI) *fyne.Container {
 				log.Fatal(err)
 			}
 
-			<-time.After(recorder.RecordInterval() / 2)
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(recorder.RecordInterval()):
+				continue
+			}
 		}
 	}()
 

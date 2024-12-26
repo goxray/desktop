@@ -28,9 +28,7 @@ func (m AppTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color 
 		case theme.ColorNamePrimary:
 			return color.RGBA{R: 50, G: 107, B: 199, A: 255}
 		case theme.ColorNameSuccess:
-			return color.RGBA{50, 199, 67, 255}
-		case theme.ColorNameError:
-			return color.RGBA{R: 199, G: 50, B: 50, A: 255}
+			return color.RGBA{R: 50, G: 199, B: 67, A: 255}
 		case theme.ColorNameForegroundOnPrimary, // Buttons text color
 			theme.ColorNameForegroundOnError,
 			theme.ColorNameForegroundOnWarning,
@@ -43,7 +41,11 @@ func (m AppTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color 
 	if v == theme.VariantLight {
 		switch c {
 		case theme.ColorNameSuccess:
-			return color.RGBA{49, 181, 64, 255}
+			return color.RGBA{R: 49, G: 181, B: 64, A: 255}
+		case theme.ColorNameError:
+			return color.RGBA{237, 72, 66, 255}
+		case theme.ColorNamePrimary:
+			return color.RGBA{84, 139, 235, 255}
 		}
 	}
 
@@ -60,14 +62,14 @@ func (m AppTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color 
 	case theme.VariantLight:
 		switch c {
 		case ColorNameGraphGreen:
-			return color.RGBA{89, 217, 110, 255}
+			return color.RGBA{R: 89, G: 217, B: 110, A: 255}
 		case ColorNameGraphBlue:
-			return color.RGBA{105, 150, 255, 255}
+			return color.RGBA{R: 105, G: 150, B: 255, A: 255}
 		}
 	}
 	switch c {
 	case ColorNameTextMuted:
-		return color.RGBA{255, 255, 255, 180}
+		return color.RGBA{R: 160, G: 160, B: 160, A: 255}
 	}
 
 	return theme.DefaultTheme().Color(c, v)

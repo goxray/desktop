@@ -47,7 +47,7 @@ func (l badgeLayout) MinSize(objects []fyne.CanvasObject) (min fyne.Size) {
 func NewBadge(label string, clr color.Color) *fyne.Container {
 	back := &canvas.Rectangle{
 		StrokeColor:  clr,
-		StrokeWidth:  1,
+		StrokeWidth:  0.6,
 		CornerRadius: 6,
 	}
 	text := &canvas.Text{
