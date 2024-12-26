@@ -66,7 +66,7 @@ func (c *Item) Disconnect() error {
 	return c.client.Disconnect(context.Background())
 }
 
-func (c *Item) Recorder() window.RecorderI {
+func (c *Item) Recorder() window.NetworkRecorder {
 	if c.client == nil {
 		c.Init()
 	}

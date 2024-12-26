@@ -9,6 +9,7 @@ import (
 
 type UpdateConfig struct {
 	errLabel           *widget.Label
+	onSubmit           func()
 	saveBtn, deleteBtn *widget.Button
 	newLabel, newLink  *widget.Entry
 	container          *fyne.Container
@@ -29,6 +30,7 @@ func NewUpdateConfig(updateBtnTitle, deleteBtnTitle string) *UpdateConfig {
 		deleteBtn: deleteBtn,
 		newLabel:  newLabelInput,
 		newLink:   newLinkInput,
+		onSubmit:  func() {},
 		container: container.NewVBox(
 			widget.NewSeparator(),
 			container.NewVBox(errLabel, newLabelInput, newLinkInput),
@@ -60,6 +62,10 @@ func (f *UpdateConfig) SetInputs(label, link string) {
 	f.newLabel.SetText(label)
 }
 
+func (f *UpdateConfig) OnSubmit(fn func()) {
+	f.onSubmit = fn
+}
+
 func (f *UpdateConfig) SetError(err error) {
 	if err != nil {
 		f.errLabel.SetText(err.Error())
@@ -67,6 +73,7 @@ func (f *UpdateConfig) SetError(err error) {
 	} else {
 		f.errLabel.SetText("")
 		f.errLabel.Hide()
+		f.onSubmit()
 	}
 }
 
@@ -78,10 +85,14 @@ func (f *UpdateConfig) InputLink() string {
 	return f.newLink.Text
 }
 
-func (f *UpdateConfig) OnUpdate(fn func()) {
-	f.saveBtn.OnTapped = fn
+func (f *UpdateConfig) OnUpdate(fn func() error) {
+	f.saveBtn.OnTapped = func() {
+		f.SetError(fn())
+	}
 }
 
-func (f *UpdateConfig) OnDelete(fn func()) {
-	f.deleteBtn.OnTapped = fn
+func (f *UpdateConfig) OnDelete(fn func() error) {
+	f.deleteBtn.OnTapped = func() {
+		f.SetError(fn())
+	}
 }

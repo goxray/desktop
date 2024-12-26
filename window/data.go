@@ -3,6 +3,7 @@ package window
 import (
 	_ "embed"
 	"errors"
+	"time"
 )
 
 //go:embed about_static.md
@@ -45,11 +46,19 @@ func (f *FormData) Validate() error {
 	return nil
 }
 
+type NetworkRecorder interface {
+	Read() []float64
+	Written() []float64
+	BytesRead() int
+	BytesWritten() int
+	RecordInterval() time.Duration
+}
+
 type ListItem interface {
 	Label() string
 	Link() string
 	XRayConfig() map[string]string
 	Active() bool
 
-	Recorder() RecorderI // TODO: verify implementation
+	Recorder() NetworkRecorder
 }

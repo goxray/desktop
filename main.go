@@ -71,9 +71,7 @@ func main() {
 	trayMenu.OnSettingsClick(func() {
 		if settingsWindow == nil {
 			settingsWindow = window.NewSettingsDraft[*Item](a, list, AddFormH(items), UpdateFormH(items), DeleteItemH(items))
-			settingsWindow.Window().SetOnClosed(func() {
-				settingsWindow = nil
-			})
+			settingsWindow.OnClosed(func() { settingsWindow = nil })
 		}
 		settingsWindow.Show()
 	})

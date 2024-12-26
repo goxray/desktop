@@ -24,6 +24,9 @@ type SettingsDraft[T ListItem] struct {
 	onAdd    func(data FormData) error
 	onUpdate func(FormData, T) error
 	onDelete func(T) error
+
+	ctx       context.Context
+	ctxCancel context.CancelFunc
 }
 
 func NewSettingsDraft[T ListItem](
@@ -38,17 +41,23 @@ func NewSettingsDraft[T ListItem](
 	w.RequestFocus()
 	w.Resize(fyne.NewSize(750, 450))
 
+	ctx, cancel := context.WithCancel(context.Background())
 	return &SettingsDraft[T]{
-		window:   w,
-		onAdd:    onAdd,
-		onUpdate: onUpdate,
-		onDelete: onDelete,
-		list:     list,
+		window:    w,
+		onAdd:     onAdd,
+		onUpdate:  onUpdate,
+		onDelete:  onDelete,
+		list:      list,
+		ctx:       ctx,
+		ctxCancel: cancel,
 	}
 }
 
-func (w *SettingsDraft[T]) Window() fyne.Window {
-	return w.window
+func (w *SettingsDraft[T]) OnClosed(fn func()) {
+	w.window.SetOnClosed(func() {
+		w.ctxCancel()
+		fn()
+	})
 }
 
 func (w *SettingsDraft[T]) Show() {
@@ -154,7 +163,14 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 
 	// Cache active charts
 	activeCharts := map[widget.ListItemID]*fyne.Container{}
-	listContainer := container.NewBorder(nil, itemSettings, nil, nil, list)
+	renderedBadges := map[widget.ListItemID][]fyne.CanvasObject{}
+	updateRenderedBadges := func(id widget.ListItemID, val ListItem) {
+		renderedBadges[id] = []fyne.CanvasObject{
+			customwidget.NewBadge(val.XRayConfig()["Protocol"], theme.Color(customtheme.ColorNameTextMuted)),
+			customwidget.NewBadge(val.XRayConfig()["Type"], theme.Color(customtheme.ColorNameTextMuted)),
+			customwidget.NewBadge(val.XRayConfig()["TLS"], theme.Color(customtheme.ColorNameTextMuted)),
+		}
+	}
 
 	list.CreateItem = func() fyne.CanvasObject {
 		dataStats := container.NewHBox(
@@ -169,93 +185,81 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		return cnt
 	}
 	list.UpdateItem = func(id widget.ListItemID, o fyne.CanvasObject) {
-		val := getListItem(w.list, id)
-		updateForm.Disable(val.Active())
+		defer itemSettings.Refresh()
 		activeIcon := o.(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Icon)
+		label := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label)
+		badges := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container)
+		netStatsRead := o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[0].(*fyne.Container)
+		netStatsWritten := o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[1].(*fyne.Container)
+
+		val := getListItem(w.list, id)
+
 		if val.Active() {
 			activeIcon.SetResource(icon.ListActive)
 		} else {
 			activeIcon.SetResource(nil)
 		}
 
-		stats := o.(*fyne.Container).Objects[2].(*fyne.Container)
 		readBytes := fmt.Sprintf("↑%s", bytesToString(val.Recorder().BytesRead()))
 		writtenBytes := fmt.Sprintf("↓%s", bytesToString(val.Recorder().BytesWritten()))
-		stats.Objects[0].(*fyne.Container).Objects[0] = canvas.NewText(readBytes, theme.Color(customtheme.ColorNameTextMuted))
-		stats.Objects[1].(*fyne.Container).Objects[0] = canvas.NewText(writtenBytes, theme.Color(customtheme.ColorNameTextMuted))
-		o.Refresh()
+		netStatsRead.Objects[0] = canvas.NewText(readBytes, theme.Color(customtheme.ColorNameTextMuted))
+		netStatsWritten.Objects[0] = canvas.NewText(writtenBytes, theme.Color(customtheme.ColorNameTextMuted))
 
-		o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label).SetText(fmt.Sprintf(
-			"%s [%s]", val.Label(), val.XRayConfig()["Address"],
-		))
+		label.SetText(fmt.Sprintf("%s [%s]", val.Label(), val.XRayConfig()["Address"]))
 
 		if _, ok := activeCharts[id]; !ok {
-			activeCharts[id] = getNetStatChartsDemo(context.Background(), fyne.NewSize(250, 100), val.Recorder())
+			activeCharts[id] = customwidget.NewLiveNetworkChart(w.ctx, fyne.NewSize(250, 100), val.Recorder())
 		}
 
-		if len(o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects) == 0 {
-			o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects = []fyne.CanvasObject{
-				customwidget.NewBadge(val.XRayConfig()["Protocol"], theme.Color(customtheme.ColorNameTextMuted)),
-				customwidget.NewBadge(val.XRayConfig()["Type"], theme.Color(customtheme.ColorNameTextMuted)),
-				customwidget.NewBadge(val.XRayConfig()["TLS"], theme.Color(customtheme.ColorNameTextMuted)),
-			}
+		if _, ok := renderedBadges[id]; !ok {
+			updateRenderedBadges(id, val)
 		}
+
+		badges.Objects = renderedBadges[id]
+	}
+	list.OnUnselected = func(id widget.ListItemID) {
+		itemSettings.Hide()
 	}
 	list.OnSelected = func(id widget.ListItemID) {
-		itemSettings.Show()
+		defer itemSettings.Show()
 		defer itemSettings.Refresh()
 
 		val := getListItem(w.list, id)
-		updateForm.Disable(val.Active())
-		updateForm.SetInputs(val.Label(), val.Link())
 
 		netStatsChart.Objects[0] = activeCharts[id]
 		netStatsChart.Refresh()
 		configInfoText.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
 
-		// wrap err handling
-		handleErr := func(err error) {
-			if err != nil {
-				updateForm.SetError(err)
+		updateForm.Disable(val.Active())
+		updateForm.SetInputs(val.Label(), val.Link())
+		updateForm.OnUpdate(func() error {
+			defer updateRenderedBadges(id, val) // update badges only on config change
 
-				return
-			}
-			list.UnselectAll()
-			updateForm.SetError(nil)
-			itemSettings.Refresh()
-			itemSettings.Hide()
-			listContainer.Refresh()
-		}
-
-		updateForm.OnUpdate(func() {
 			data := FormData{Label: updateForm.InputLabel(), Link: updateForm.InputLink()}
-			handleErr(handleUpdateItem(data, val.(T), w.onUpdate))
-		})
-		updateForm.OnDelete(func() {
-			if val.Active() {
-				handleErr(errChangeActiveItem)
 
-				return
+			if val.Active() {
+				return errChangeActiveItem
 			}
 
-			handleErr(w.onDelete(val.(T)))
+			if err := data.Validate(); err != nil {
+				return err
+			}
+
+			return w.onUpdate(data, val.(T))
+		})
+		updateForm.OnDelete(func() error {
+			if val.Active() {
+				return errChangeActiveItem
+			}
+
+			return w.onDelete(val.(T))
+		})
+		updateForm.OnSubmit(func() {
+			list.UnselectAll()
 		})
 	}
 
-	return listContainer
-}
-
-func bytesToString(bytes int) string {
-	const bytesToMegabit = 125000
-	const megaBitToGB = 8000
-	postfix := "Mb"
-	value := float64(bytes) / bytesToMegabit
-	if value > 1000 { // threshold to turn into GB
-		value = value / megaBitToGB
-		postfix = "GB"
-	}
-
-	return fmt.Sprintf("%.2f %s", value, postfix)
+	return container.NewBorder(nil, itemSettings, nil, nil, list)
 }
 
 func handleAddItem(data FormData, errLabel *widget.Label, onAdd func(FormData) error) bool {
@@ -276,18 +280,6 @@ func handleAddItem(data FormData, errLabel *widget.Label, onAdd func(FormData) e
 	return true
 }
 
-func handleUpdateItem[T ListItem](data FormData, val T, onUpdate func(FormData, T) error) error {
-	if val.Active() {
-		return errChangeActiveItem
-	}
-
-	if err := data.Validate(); err != nil {
-		return err
-	}
-
-	return onUpdate(data, val)
-}
-
 func getListItem(list binding.DataList, id widget.ListItemID) ListItem {
 	i, err := list.GetItem(id)
 	if err != nil {
@@ -297,23 +289,6 @@ func getListItem(list binding.DataList, id widget.ListItemID) ListItem {
 	untyped, _ := i.(binding.Untyped).Get()
 
 	return untyped.(ListItem)
-}
-
-type disableWidget interface {
-	Disable()
-	Enable()
-	Refresh()
-}
-
-func disableAll(disable bool, widgets ...disableWidget) {
-	for _, wdg := range widgets {
-		if disable {
-			wdg.Disable()
-		} else {
-			wdg.Enable()
-		}
-		wdg.Refresh()
-	}
 }
 
 func xrayConfigToMd(x map[string]string) string {
