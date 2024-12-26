@@ -9,6 +9,7 @@ import (
 	customtheme "github.com/goxray/ui/theme"
 )
 
+// TextWithCopy represents a widget.RichText with copy button attached to the top right corner.
 type TextWithCopy struct {
 	content   *widget.RichText
 	container *fyne.Container
@@ -38,6 +39,7 @@ func (t *TextWithCopy) Container() *fyne.Container {
 	return t.container
 }
 
+// ParseMarkdown updates the TextWithCopy RichText content.
 func (t *TextWithCopy) ParseMarkdown(text string) {
 	t.content.ParseMarkdown(text)
 }

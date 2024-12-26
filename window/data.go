@@ -26,6 +26,8 @@ const (
 
 	errChangeActiveText = "disconnect before editing"
 	errLabelOrLinkEmpty = "label or link empty"
+
+	uploadLable, downloadLabel = " ● upload", "● download"
 )
 
 var (
@@ -47,9 +49,15 @@ func (f *FormData) Validate() error {
 }
 
 type NetworkRecorder interface {
+	// Read should return values for uplink for each previous RecordInterval.
+	// Number of values returned must match Written.
 	Read() []float64
+	// Written should return values for downlink for each previous RecordInterval.
+	// Number of values returned must match Written.
 	Written() []float64
+	// BytesRead should return the total number of bytes for uplink.
 	BytesRead() int
+	// BytesWritten should return the total number of bytes for downlink.
 	BytesWritten() int
 	RecordInterval() time.Duration
 }

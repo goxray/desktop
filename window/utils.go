@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// bytesToString returns short string representation of bytes, starting from Mb and ending in GB.
 func bytesToString(bytes int) string {
 	const bytesToMegabit = 125000
 	const megaBitToGB = 8000

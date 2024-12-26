@@ -3,6 +3,7 @@ package window
 import (
 	"context"
 	"fmt"
+	"image/color"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -155,22 +156,12 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 	)
 	itemSettings.Hidden = true
 
-	list := widget.NewListWithData(w.list,
-		func() fyne.CanvasObject { return nil },
-		func(_ binding.DataItem, _ fyne.CanvasObject) {},
-	)
+	list := widget.NewListWithData(w.list, nil, nil)
 	list.HideSeparators = true
 
-	// Cache active charts
-	activeCharts := map[widget.ListItemID]*fyne.Container{}
-	renderedBadges := map[widget.ListItemID][]fyne.CanvasObject{}
-	updateRenderedBadges := func(id widget.ListItemID, val ListItem) {
-		renderedBadges[id] = []fyne.CanvasObject{
-			customwidget.NewBadge(val.XRayConfig()["Protocol"], theme.Color(customtheme.ColorNameTextMuted)),
-			customwidget.NewBadge(val.XRayConfig()["Type"], theme.Color(customtheme.ColorNameTextMuted)),
-			customwidget.NewBadge(val.XRayConfig()["TLS"], theme.Color(customtheme.ColorNameTextMuted)),
-		}
-	}
+	// Small caches to reuse sensitive widgets.
+	activeCharts := map[widget.ListItemID]*fyne.Container{}       // Cache for active live charts
+	renderedBadges := map[widget.ListItemID][]fyne.CanvasObject{} // Cache for badges
 
 	list.CreateItem = func() fyne.CanvasObject {
 		dataStats := container.NewHBox(
@@ -208,11 +199,13 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		label.SetText(fmt.Sprintf("%s [%s]", val.Label(), val.XRayConfig()["Address"]))
 
 		if _, ok := activeCharts[id]; !ok {
-			activeCharts[id] = customwidget.NewLiveNetworkChart(w.ctx, fyne.NewSize(250, 100), val.Recorder())
+			activeCharts[id] = customwidget.NewLiveNetworkChart(w.ctx, uploadLable, downloadLabel,
+				fyne.NewSize(250, 100), val.Recorder())
+			activeCharts[id].Refresh()
 		}
 
 		if _, ok := renderedBadges[id]; !ok {
-			updateRenderedBadges(id, val)
+			renderedBadges[id] = createBadgesForVal(val)
 		}
 
 		badges.Objects = renderedBadges[id]
@@ -227,13 +220,13 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		val := getListItem(w.list, id)
 
 		netStatsChart.Objects[0] = activeCharts[id]
-		netStatsChart.Refresh()
 		configInfoText.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
 
 		updateForm.Disable(val.Active())
 		updateForm.SetInputs(val.Label(), val.Link())
 		updateForm.OnUpdate(func() error {
-			defer updateRenderedBadges(id, val) // update badges only on config change
+			// Update badges to reflect config changes in update.
+			defer func() { renderedBadges[id] = createBadgesForVal(val) }()
 
 			data := FormData{Label: updateForm.InputLabel(), Link: updateForm.InputLink()}
 
@@ -260,6 +253,29 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 	}
 
 	return container.NewBorder(nil, itemSettings, nil, nil, list)
+}
+
+// createBadgesForVal generates badges set for list value.
+func createBadgesForVal(val ListItem) []fyne.CanvasObject {
+	showTagsFor := []string{"Protocol", "Type", "TLS"}
+	// Specify specific key:values that should be marked with different badge color.
+	specialColors := map[string]map[string]color.Color{
+		// TLS none is a terrible security issue, mark it red.
+		"TLS": {"none": theme.Color(customtheme.ColorNameTextErrorMuted)},
+	}
+
+	badges := make([]fyne.CanvasObject, 0, len(showTagsFor))
+	for _, tag := range showTagsFor {
+		value := val.XRayConfig()[tag]
+		clr := theme.Color(customtheme.ColorNameTextMuted)
+		if colorsVal, ok := specialColors[tag]; ok && colorsVal[value] != nil {
+			clr = colorsVal[value]
+		}
+
+		badges = append(badges, customwidget.NewBadge(val.XRayConfig()[tag], clr))
+	}
+
+	return badges
 }
 
 func handleAddItem(data FormData, errLabel *widget.Label, onAdd func(FormData) error) bool {

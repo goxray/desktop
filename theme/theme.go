@@ -10,9 +10,10 @@ import (
 var _ fyne.Theme = (*AppTheme)(nil)
 
 const (
-	ColorNameGraphGreen = "goxray_theme_graph_green"
-	ColorNameGraphBlue  = "goxray_theme_graph_blue"
-	ColorNameTextMuted  = "goxray_theme_text_muted"
+	ColorNameGraphGreen     = "goxray_theme_graph_green"
+	ColorNameGraphBlue      = "goxray_theme_graph_blue"
+	ColorNameTextMuted      = "goxray_theme_text_muted"
+	ColorNameTextErrorMuted = "goxray_theme_text_error_muted"
 )
 
 // AppTheme represents small styling additions to fyne default theme.
@@ -49,27 +50,39 @@ func (m AppTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color 
 		}
 	}
 
-	// Custom colors:
-	switch v {
-	case theme.VariantDark:
-		switch c {
-		case ColorNameGraphGreen:
-			return color.RGBA{62, 194, 84, 255}
-		case ColorNameGraphBlue:
-			return color.RGBA{62, 104, 240, 255}
-		}
+	return m.customColor(c, v)
+}
 
-	case theme.VariantLight:
-		switch c {
-		case ColorNameGraphGreen:
-			return color.RGBA{R: 89, G: 217, B: 110, A: 255}
-		case ColorNameGraphBlue:
-			return color.RGBA{R: 105, G: 150, B: 255, A: 255}
-		}
-	}
+func (m AppTheme) customColor(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color {
 	switch c {
 	case ColorNameTextMuted:
-		return color.RGBA{R: 160, G: 160, B: 160, A: 255}
+		switch v {
+		case theme.VariantDark:
+			return color.RGBA{R: 110, G: 110, B: 110, A: 255}
+		case theme.VariantLight:
+			return color.RGBA{R: 160, G: 160, B: 160, A: 255}
+		}
+	case ColorNameTextErrorMuted:
+		switch v {
+		case theme.VariantDark:
+			return color.RGBA{194, 118, 118, 255}
+		case theme.VariantLight:
+			return color.RGBA{247, 139, 139, 255}
+		}
+	case ColorNameGraphGreen:
+		switch v {
+		case theme.VariantDark:
+			return color.RGBA{R: 62, G: 194, B: 84, A: 255}
+		case theme.VariantLight:
+			return color.RGBA{R: 89, G: 217, B: 110, A: 255}
+		}
+	case ColorNameGraphBlue:
+		switch v {
+		case theme.VariantDark:
+			return color.RGBA{R: 62, G: 104, B: 240, A: 255}
+		case theme.VariantLight:
+			return color.RGBA{R: 105, G: 150, B: 255, A: 255}
+		}
 	}
 
 	return theme.DefaultTheme().Color(c, v)

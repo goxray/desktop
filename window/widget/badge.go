@@ -44,6 +44,7 @@ func (l badgeLayout) MinSize(objects []fyne.CanvasObject) (min fyne.Size) {
 	return
 }
 
+// NewBadge creates a badge widget container. Badge is a small colored text container, usually used to represent tags.
 func NewBadge(label string, clr color.Color) *fyne.Container {
 	back := &canvas.Rectangle{
 		StrokeColor:  clr,
