@@ -38,8 +38,6 @@ func NewLiveNetworkChart(ctx context.Context, upLabel, downLabel string, size fy
 
 	ctx, cancel := context.WithCancel(ctx)
 	updateChart := func() {
-		data[upLabel] = recorder.Read()
-		data[downLabel] = recorder.Written()
 		if err := chart.UpdateNamed(data, colors, []string{upLabel, downLabel}); err != nil {
 			slog.Error(err.Error())
 			cancel()
@@ -47,9 +45,12 @@ func NewLiveNetworkChart(ctx context.Context, upLabel, downLabel string, size fy
 	}
 
 	// Initialize the chart with initial data.
+	data[upLabel] = recorder.Read()
+	data[downLabel] = recorder.Written()
 	updateChart()
 
 	go func() {
+		emptyDrawn := false
 		for {
 			select {
 			case <-ctx.Done():
@@ -60,11 +61,17 @@ func NewLiveNetworkChart(ctx context.Context, upLabel, downLabel string, size fy
 			data[upLabel] = recorder.Read()
 			data[downLabel] = recorder.Written()
 
-			if allMapZeroes(data) {
-				continue // Optimization: no need to rerender stale zeroed chart.
+			if allMapZeroes(data) { // Optimization: no need to rerender stale zeroed chart.
+				if !emptyDrawn { // draw empty chart just once
+					updateChart()
+					emptyDrawn = true
+				}
+
+				continue
 			}
 
 			updateChart()
+			emptyDrawn = false
 		}
 	}()
 
