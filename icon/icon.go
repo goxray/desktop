@@ -6,6 +6,7 @@ package icon
 import (
 	"embed"
 	_ "embed"
+	"runtime"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/theme"
@@ -19,26 +20,33 @@ var assetsFS embed.FS
 //
 // All icons were modified, the color and some properties of SVG files were altered.
 var (
-	LogoPassive  fyne.Resource = &fyne.StaticResource{StaticName: "logo_passive", StaticContent: MustReadFile("icon_default.svg")}
-	LogoActive   fyne.Resource = &fyne.StaticResource{StaticName: "logo_active", StaticContent: MustReadFile("icon_active.svg")}
-	Warning      fyne.Resource = &fyne.StaticResource{StaticName: "warning", StaticContent: MustReadFile("warn.svg")}
-	Settings     fyne.Resource = &fyne.StaticResource{StaticName: "settings", StaticContent: MustReadFile("settings.svg")}
-	LinkOn       fyne.Resource = &fyne.StaticResource{StaticName: "link_on", StaticContent: MustReadFile("link.svg")}
-	LinkProgress fyne.Resource = &fyne.StaticResource{StaticName: "link_in_progress", StaticContent: MustReadFile("loading.svg")}
-	LinkOff      fyne.Resource = &fyne.StaticResource{StaticName: "link_off", StaticContent: MustReadFile("link_off.svg")}
-	ListActive   fyne.Resource = &fyne.StaticResource{StaticName: "list_active", StaticContent: MustReadFile("list_active.svg")}
+	LogoPassive  = PrepareResource("icon_default.svg")
+	LogoActive   = PrepareResource("icon_active.svg")
+	Warning      = PrepareResource("warn.svg")
+	Settings     = PrepareResource("settings.svg")
+	LinkOn       = PrepareResource("link.svg")
+	LinkProgress = PrepareResource("loading.svg")
+	LinkOff      = PrepareResource("link_off.svg")
+	ListActive   = PrepareResource("list_active.svg")
 )
 
 func init() {
+	// Use svg icons for tray icon only on darwin.
+	if runtime.GOOS != "darwin" {
+		LogoPassive = PrepareResource("icon_default.png")
+		LogoActive = PrepareResource("icon_active.png")
+		Warning = PrepareResource("warn.png")
+	}
+
 	LinkProgress = theme.NewThemedResource(LinkProgress)
 	Settings = theme.NewThemedResource(Settings)
 }
 
-func MustReadFile(path string) []byte {
+func PrepareResource(path string) fyne.Resource {
 	b, err := assetsFS.ReadFile("assets/" + path)
 	if err != nil {
 		panic(err)
 	}
 
-	return b
+	return &fyne.StaticResource{StaticName: path, StaticContent: b}
 }
