@@ -52,7 +52,7 @@ func (s *SaveFile) Load(list *ItemsList) {
 	}
 
 	for _, item := range items {
-		item.Init()
+		item.Init(list)
 		list.Add(item)
 	}
 }

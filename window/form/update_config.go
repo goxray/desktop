@@ -43,7 +43,7 @@ func (f *UpdateConfig) Container() *fyne.Container {
 	return f.container
 }
 
-func (f *UpdateConfig) Disable(disable bool) {
+func (f *UpdateConfig) ToggleDisable(disable bool) {
 	if disable {
 		f.saveBtn.Disable()
 		f.deleteBtn.Disable()
@@ -54,6 +54,14 @@ func (f *UpdateConfig) Disable(disable bool) {
 		f.deleteBtn.Enable()
 		f.newLabel.Enable()
 		f.newLink.Enable()
+	}
+}
+
+func (f *UpdateConfig) ToggleHide(hide bool) {
+	if hide {
+		f.Container().Hide()
+	} else {
+		f.Container().Show()
 	}
 }
 

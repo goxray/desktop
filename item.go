@@ -18,6 +18,7 @@ type Item struct {
 	LabelVal     string            `json:"Label"`
 	LinkVal      string            `json:"Link"`
 	XRyConfigVal map[string]string `json:"xray_config"`
+	parent       *ItemsList
 
 	active bool
 
@@ -25,19 +26,19 @@ type Item struct {
 	recorder *netchart.Recorder
 }
 
-func NewItem(label, link string, cfg xray.GeneralConfig) *Item {
+func NewItem(label, link string, cfg xray.GeneralConfig, parent *ItemsList) *Item {
 	itm := &Item{
 		LabelVal: label,
 		LinkVal:  link,
 	}
 	itm.XRyConfigVal = itm.xrayBaseConfigToMap(cfg)
 
-	itm.Init()
+	itm.Init(parent)
 
 	return itm
 }
 
-func (c *Item) Init() {
+func (c *Item) Init(parent *ItemsList) {
 	cl, err := vpn.NewClientWithOpts(vpn.Config{
 		Logger: slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})),
 	})
@@ -48,6 +49,7 @@ func (c *Item) Init() {
 
 	c.recorder = netchart.NewRecorder(c.client)
 	c.recorder.Start()
+	c.parent = parent
 }
 
 func (c *Item) Active() bool {
@@ -56,6 +58,7 @@ func (c *Item) Active() bool {
 
 func (c *Item) SetActive(active bool) {
 	c.active = active
+	c.parent.onChange()
 }
 
 func (c *Item) Connect() error {
@@ -68,7 +71,7 @@ func (c *Item) Disconnect() error {
 
 func (c *Item) Recorder() window.NetworkRecorder {
 	if c.client == nil {
-		c.Init()
+		c.Init(c.parent)
 	}
 
 	return c.recorder

@@ -55,6 +55,12 @@ func NewSettings[T ListItem](
 	}
 }
 
+func (w *Settings[T]) Refresh() {
+	if w.window.Canvas() != nil {
+		w.window.Content().Refresh()
+	}
+}
+
 func (w *Settings[T]) OnClosed(fn func()) {
 	w.window.SetOnClosed(func() {
 		w.ctxCancel()
@@ -164,6 +170,7 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 	activeCharts := map[widget.ListItemID]*fyne.Container{}       // Cache for active live charts
 	renderedBadges := map[widget.ListItemID][]fyne.CanvasObject{} // Cache for badges
 	activeNetStats := map[widget.ListItemID]*fyne.Container{}     // Cache for net stats counters
+	var selectedItem widget.ListItemID = -1
 
 	list.CreateItem = func() fyne.CanvasObject {
 		dataStats := container.NewHBox(
@@ -190,6 +197,9 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 		} else {
 			activeIcon.SetResource(nil)
 		}
+		if id != -1 && id == selectedItem {
+			updateForm.ToggleHide(val.Active())
+		}
 
 		label.SetText(fmt.Sprintf("%s [%s]", val.Label(), val.XRayConfig()["Address"]))
 
@@ -213,6 +223,7 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 		itemSettings.Hide()
 	}
 	list.OnSelected = func(id widget.ListItemID) {
+		selectedItem = id
 		defer itemSettings.Show()
 		defer itemSettings.Refresh()
 
@@ -221,7 +232,7 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 		netStatsChart.Objects[0] = activeCharts[id]
 		configInfoText.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
 
-		updateForm.Disable(val.Active())
+		updateForm.ToggleHide(val.Active())
 		updateForm.SetInputs(val.Label(), val.Link())
 		updateForm.OnUpdate(func() error {
 			// Update badges to reflect config changes in update.

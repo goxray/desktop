@@ -101,6 +101,9 @@ func main() {
 	items.OnChange(func() {
 		trayMenu.Refresh()
 		settingsLoader.Update(items)
+		if settingsWindow != nil {
+			settingsWindow.Refresh()
+		}
 	})
 
 	settingsLoader.Load(items) // Initialize items from savefile and update windows/tray with new items.
@@ -144,7 +147,7 @@ func AddFormH(list *ItemsList) func(data window.FormData) error {
 			return errors.New("remark value is too long")
 		}
 
-		list.Add(NewItem(new.Label, new.Link, proto.ConvertToGeneralConfig()))
+		list.Add(NewItem(new.Label, new.Link, proto.ConvertToGeneralConfig(), list))
 
 		return nil
 	}
