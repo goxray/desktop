@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2/lang"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
@@ -18,7 +19,7 @@ import (
 	customwidget "github.com/goxray/ui/window/widget"
 )
 
-type SettingsDraft[T ListItem] struct {
+type Settings[T ListItem] struct {
 	window fyne.Window
 	list   binding.DataList
 
@@ -30,20 +31,20 @@ type SettingsDraft[T ListItem] struct {
 	ctxCancel context.CancelFunc
 }
 
-func NewSettingsDraft[T ListItem](
+func NewSettings[T ListItem](
 	a fyne.App,
 	list binding.DataList,
 	onAdd func(data FormData) error,
 	onUpdate func(FormData, T) error,
 	onDelete func(T) error,
-) *SettingsDraft[T] {
-	w := a.NewWindow(settingsText)
+) *Settings[T] {
+	w := a.NewWindow(lang.L("Settings"))
 	w.CenterOnScreen()
 	w.RequestFocus()
 	w.Resize(fyne.NewSize(750, 450))
 
 	ctx, cancel := context.WithCancel(context.Background())
-	return &SettingsDraft[T]{
+	return &Settings[T]{
 		window:    w,
 		onAdd:     onAdd,
 		onUpdate:  onUpdate,
@@ -54,22 +55,22 @@ func NewSettingsDraft[T ListItem](
 	}
 }
 
-func (w *SettingsDraft[T]) OnClosed(fn func()) {
+func (w *Settings[T]) OnClosed(fn func()) {
 	w.window.SetOnClosed(func() {
 		w.ctxCancel()
 		fn()
 	})
 }
 
-func (w *SettingsDraft[T]) Show() {
+func (w *Settings[T]) Show() {
 	tabs := container.NewAppTabs(
 		container.NewTabItemWithIcon( // Connections list settings tab
-			configsText,
+			lang.L("Configs"),
 			icon.Settings,
 			w.createSettingsContainer(),
 		),
 		container.NewTabItemWithIcon( // About tab with static app info
-			aboutText,
+			lang.L("About"),
 			theme.QuestionIcon(),
 			w.createAboutContainer(),
 		),
@@ -95,33 +96,33 @@ func (w *SettingsDraft[T]) Show() {
 	w.window.Show()
 }
 
-func (w *SettingsDraft[T]) createAboutContainer() *fyne.Container {
+func (w *Settings[T]) createAboutContainer() *fyne.Container {
 	return container.NewCenter(container.NewVBox(widget.NewRichTextFromMarkdown(string(mdAboutContent))))
 }
 
-func (w *SettingsDraft[T]) createSettingsContainer() *fyne.Container {
+func (w *Settings[T]) createSettingsContainer() *fyne.Container {
 	return container.NewBorder(nil, nil,
 		w.createAddForm(), nil, // Add form on the left
 		container.NewBorder( // All other space is occupied by connections list
 			nil, nil,
 			widget.NewSeparator(), nil,
 			container.NewBorder(
-				container.NewVBox(widget.NewLabel(configsListHeaderText), widget.NewSeparator()),
+				container.NewVBox(widget.NewLabel(lang.L("Available connection configurations:")), widget.NewSeparator()),
 				nil, nil, nil, w.createDynamicList(),
 			),
 		),
 	)
 }
 
-func (w *SettingsDraft[T]) createAddForm() *fyne.Container {
-	inputLink := &widget.Entry{PlaceHolder: linkPlaceholderText}
-	inputLabel := &widget.Entry{PlaceHolder: linkNamePlaceholderText}
+func (w *Settings[T]) createAddForm() *fyne.Container {
+	inputLink := &widget.Entry{PlaceHolder: "vless://example.com..."}
+	inputLabel := &widget.Entry{PlaceHolder: lang.L("Display name")}
 	errLabel := &widget.Label{Importance: widget.DangerImportance}
 	errLabel.Hide()
 
 	addBtn := &widget.Button{
 		Icon: theme.ContentAddIcon(),
-		Text: addText,
+		Text: lang.L("Add"),
 		OnTapped: func() {
 			data := FormData{Label: inputLabel.Text, Link: inputLink.Text}
 			if handleAddItem(data, errLabel, w.onAdd) {
@@ -135,7 +136,7 @@ func (w *SettingsDraft[T]) createAddForm() *fyne.Container {
 	}
 
 	return container.NewVBox(
-		widget.NewLabel(insertYourConnectionURLText),
+		widget.NewLabel(lang.L("Insert your connection URL")),
 		inputLabel,
 		inputLink,
 		errLabel,
@@ -143,8 +144,8 @@ func (w *SettingsDraft[T]) createAddForm() *fyne.Container {
 	)
 }
 
-func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
-	updateForm := form.NewUpdateConfig(updateText, deleteText)
+func (w *Settings[T]) createDynamicList() *fyne.Container {
+	updateForm := form.NewUpdateConfig(lang.L("Update"), lang.L("Delete"))
 	configInfoText := customwidget.NewTextWithCopy(w.window.Clipboard())
 
 	netStatsChart := container.NewWithoutLayout(&fyne.Container{})
@@ -165,8 +166,8 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 
 	list.CreateItem = func() fyne.CanvasObject {
 		dataStats := container.NewHBox(
-			container.NewPadded(canvas.NewText("↑0.0 GB", theme.Color(customtheme.ColorNameTextMuted))),
-			container.NewPadded(canvas.NewText("↓0.0 GB", theme.Color(customtheme.ColorNameTextMuted))),
+			container.NewPadded(canvas.NewText("↑0.0 "+lang.L("GB"), theme.Color(customtheme.ColorNameTextMuted))),
+			container.NewPadded(canvas.NewText("↓0.0 "+lang.L("GB"), theme.Color(customtheme.ColorNameTextMuted))),
 		)
 
 		cnt := container.NewBorder(nil, nil,
@@ -199,7 +200,7 @@ func (w *SettingsDraft[T]) createDynamicList() *fyne.Container {
 		label.SetText(fmt.Sprintf("%s [%s]", val.Label(), val.XRayConfig()["Address"]))
 
 		if _, ok := activeCharts[id]; !ok {
-			activeCharts[id] = customwidget.NewLiveNetworkChart(w.ctx, uploadLable, downloadLabel,
+			activeCharts[id] = customwidget.NewLiveNetworkChart(w.ctx, " ● "+lang.L(uploadLable), "● "+lang.L(downloadLabel),
 				fyne.NewSize(250, 100), val.Recorder())
 			activeCharts[id].Refresh()
 		}
@@ -321,7 +322,7 @@ func xrayConfigToMd(x map[string]string) string {
 			continue
 		}
 
-		str += fmt.Sprintf("**%s**: %s\n\n", k, x[k])
+		str += fmt.Sprintf("**%s**: %s\n\n", lang.L(k), x[k])
 	}
 
 	return str

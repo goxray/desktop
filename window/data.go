@@ -13,26 +13,12 @@ var mdAboutContent []byte
 const (
 	repositoryLink = "https://github.com/goxray"
 
-	settingsText                = "Settings"
-	configsText                 = "Configs"
-	aboutText                   = "About"
-	linkPlaceholderText         = "vless://example.com..."
-	linkNamePlaceholderText     = "Display name"
-	addText                     = "Add"
-	updateText                  = "Update"
-	deleteText                  = "Delete"
-	insertYourConnectionURLText = "Insert your connection URL"
-	configsListHeaderText       = "Available connection configurations:"
-
-	errChangeActiveText = "disconnect before editing"
-	errLabelOrLinkEmpty = "label or link empty"
-
-	uploadLable, downloadLabel = " ● upload", "● download"
+	uploadLable, downloadLabel = "upload", "download"
 )
 
 var (
-	errChangeActiveItem     = errors.New(errChangeActiveText)
-	errEmptyUpdateFormValue = errors.New(errLabelOrLinkEmpty)
+	errChangeActiveItem     = errors.New("disconnect before editing")
+	errEmptyUpdateFormValue = errors.New("label or link empty")
 )
 
 type FormData struct {

@@ -289,8 +289,6 @@ github.com/goxjs/gl v0.0.0-20210104184919-e3fafc6f8f2a/go.mod h1:dy/f2gjY09hwVfI
 github.com/goxjs/glfw v0.0.0-20191126052801-d2efb5f20838/go.mod h1:oS8P8gVOT4ywTcjV6wZlOU4GuVFQ8F5328KY3MJ79CY=
 github.com/goxray/core v0.0.0-20241217043310-fb75955c8e9b h1:zm360v9CFN/nfnZkV2U8zoGXBA1bc+ZNKwstk61miX4=
 github.com/goxray/core v0.0.0-20241217043310-fb75955c8e9b/go.mod h1:oU090gFSBZjhwx2Ts+zBMPWOb+RKXDz6jZ1uHNJ3js8=
-github.com/goxray/tun v0.0.0-20241222231454-a52261b32a27 h1:MhpCImEem0NXZbYJgaZ6q13xTXrIzL3JpjKQo+YQ/CU=
-github.com/goxray/tun v0.0.0-20241222231454-a52261b32a27/go.mod h1:OeUrWjNx/DJK5fXK8hOS6wqFMSRgn+Z4I+dTX0qFDng=
 github.com/goxray/tun v0.0.0-20241223225711-da128c38e85f h1:6R80su9+hmyx+lB+Fee22s/7F/Hj1wsuDINWAmYg89M=
 github.com/goxray/tun v0.0.0-20241223225711-da128c38e85f/go.mod h1:OeUrWjNx/DJK5fXK8hOS6wqFMSRgn+Z4I+dTX0qFDng=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=

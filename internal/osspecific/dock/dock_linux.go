@@ -1,11 +1,5 @@
 package dock
 
-import (
-	"log/slog"
-)
-
 func HideIconInDock() {
-	slog.Warn("hiding icon not implemented on this platform")
-
-	return
+	return // On Linux dock icon is hidden by default if no windows present.
 }

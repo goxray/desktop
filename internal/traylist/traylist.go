@@ -11,6 +11,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/lang"
 	"fyne.io/fyne/v2/theme"
 )
 
@@ -71,7 +72,7 @@ func NewDefault[T value](title string, desk desktop.App, icons *IconSet) *List[T
 	footer := []*fyne.MenuItem{
 		fyne.NewMenuItemSeparator(),
 		{
-			Label:  "Configuration",
+			Label:  lang.L("Configuration"),
 			Icon:   icons.Settings,
 			Action: func() {},
 		},

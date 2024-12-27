@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/lang"
 	"fyne.io/systray"
 	vpn "github.com/goxray/tun/pkg/client"
 	"github.com/lilendian0x00/xray-knife/xray"
@@ -39,6 +41,9 @@ var MenuIcons = &traylist.IconSet{
 	Warning:     icon.Warning,
 }
 
+//go:embed translation
+var translations embed.FS
+
 func init() {
 	debug.SetGCPercent(10)
 	root.PromptRootAccess()
@@ -53,6 +58,9 @@ func main() {
 	a := app.New()
 	a.Settings().SetTheme(&theme.AppTheme{})
 	a.Lifecycle().SetOnStarted(onstart)
+	if err := lang.AddTranslationsFS(translations, "translation"); err != nil {
+		slog.Warn("failed to init translations", "error", err)
+	}
 
 	client, err := vpn.NewClientWithOpts(vpn.Config{
 		Logger: slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})),
@@ -63,14 +71,14 @@ func main() {
 
 	items := NewItemsList()
 	list := binding.BindUntypedList(items.AllUntyped())
-	trayMenu := traylist.NewDefault[*Item](AppTitleName, toDesktopApp(a), MenuIcons)
+	trayMenu := traylist.NewDefault[*Item](lang.L(AppTitleName), toDesktopApp(a), MenuIcons)
 	settingsLoader := NewSaveFile(a.Preferences())
 
 	// Tray menu setup.
-	var settingsWindow *window.SettingsDraft[*Item]
+	var settingsWindow *window.Settings[*Item]
 	trayMenu.OnSettingsClick(func() {
 		if settingsWindow == nil {
-			settingsWindow = window.NewSettingsDraft[*Item](a, list, AddFormH(items), UpdateFormH(items), DeleteItemH(items))
+			settingsWindow = window.NewSettings[*Item](a, list, AddFormH(items), UpdateFormH(items), DeleteItemH(items))
 			settingsWindow.OnClosed(func() { settingsWindow = nil })
 		}
 		settingsWindow.Show()
