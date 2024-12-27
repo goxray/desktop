@@ -12,8 +12,6 @@ var mdAboutContent []byte
 // Texts for future translations.
 const (
 	repositoryLink = "https://github.com/goxray"
-
-	uploadLable, downloadLabel = "upload", "download"
 )
 
 var (

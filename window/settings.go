@@ -163,6 +163,7 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 	// Small caches to reuse sensitive widgets.
 	activeCharts := map[widget.ListItemID]*fyne.Container{}       // Cache for active live charts
 	renderedBadges := map[widget.ListItemID][]fyne.CanvasObject{} // Cache for badges
+	activeNetStats := map[widget.ListItemID]*fyne.Container{}     // Cache for net stats counters
 
 	list.CreateItem = func() fyne.CanvasObject {
 		dataStats := container.NewHBox(
@@ -181,8 +182,6 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 		activeIcon := o.(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Icon)
 		label := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label)
 		badges := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container)
-		netStatsRead := o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[0].(*fyne.Container)
-		netStatsWritten := o.(*fyne.Container).Objects[2].(*fyne.Container).Objects[1].(*fyne.Container)
 
 		val := getListItem(w.list, id)
 
@@ -192,17 +191,16 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 			activeIcon.SetResource(nil)
 		}
 
-		readBytes := fmt.Sprintf("↑%s", bytesToString(val.Recorder().BytesRead()))
-		writtenBytes := fmt.Sprintf("↓%s", bytesToString(val.Recorder().BytesWritten()))
-		netStatsRead.Objects[0] = canvas.NewText(readBytes, theme.Color(customtheme.ColorNameTextMuted))
-		netStatsWritten.Objects[0] = canvas.NewText(writtenBytes, theme.Color(customtheme.ColorNameTextMuted))
-
 		label.SetText(fmt.Sprintf("%s [%s]", val.Label(), val.XRayConfig()["Address"]))
 
+		if _, ok := activeNetStats[id]; !ok {
+			activeNetStats[id] = customwidget.NewLiveNetworkStats(w.ctx, val.Recorder())
+			o.(*fyne.Container).Objects[2].(*fyne.Container).Objects = activeNetStats[id].Objects
+		}
+
 		if _, ok := activeCharts[id]; !ok {
-			activeCharts[id] = customwidget.NewLiveNetworkChart(w.ctx, " ● "+lang.L(uploadLable), "● "+lang.L(downloadLabel),
+			activeCharts[id] = customwidget.NewLiveNetworkChart(w.ctx, " ● "+lang.L("upload"), "● "+lang.L("download"),
 				fyne.NewSize(250, 100), val.Recorder())
-			activeCharts[id].Refresh()
 		}
 
 		if _, ok := renderedBadges[id]; !ok {
