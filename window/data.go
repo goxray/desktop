@@ -47,10 +47,10 @@ type NetworkRecorder interface {
 }
 
 type ListItem interface {
+	NetworkRecorder
+
 	Label() string
 	Link() string
 	XRayConfig() map[string]string
 	Active() bool
-
-	Recorder() NetworkRecorder
 }

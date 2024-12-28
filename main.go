@@ -20,6 +20,7 @@ import (
 	"github.com/lilendian0x00/xray-knife/xray"
 
 	"github.com/goxray/ui/icon"
+	"github.com/goxray/ui/internal/connlist"
 	"github.com/goxray/ui/internal/osspecific/dock"
 	"github.com/goxray/ui/internal/osspecific/root"
 	"github.com/goxray/ui/internal/traylist"
@@ -69,16 +70,16 @@ func main() {
 		panic(fmt.Errorf("create vpn client: %v", err))
 	}
 
-	items := NewItemsList()
+	items := connlist.New()
 	list := binding.BindUntypedList(items.AllUntyped())
-	trayMenu := traylist.NewDefault[*Item](lang.L(AppTitleName), toDesktopApp(a), MenuIcons)
+	trayMenu := traylist.NewDefault[*connlist.Item](lang.L(AppTitleName), toDesktopApp(a), MenuIcons)
 	settingsLoader := NewSaveFile(a.Preferences())
 
 	// Tray menu setup.
-	var settingsWindow *window.Settings[*Item]
+	var settingsWindow *window.Settings[*connlist.Item]
 	trayMenu.OnSettingsClick(func() {
 		if settingsWindow == nil {
-			settingsWindow = window.NewSettings[*Item](a, list, AddFormH(items), UpdateFormH(items), DeleteItemH(items))
+			settingsWindow = window.NewSettings[*connlist.Item](a, list, AddFormH(items), UpdateFormH(), DeleteItemH(items))
 			settingsWindow.OnClosed(func() { settingsWindow = nil })
 		}
 		settingsWindow.Show()
@@ -86,13 +87,13 @@ func main() {
 	trayMenu.OnItemClick(ConnectHandler(trayMenu, client))
 
 	// Update all UI elements when items are updated.
-	items.OnAdd(func(item *Item) {
+	items.OnAdd(func(item *connlist.Item) {
 		trayMenu.Add(item.Label(), item)
 		if err := list.Append(item); err != nil {
 			slog.Warn(err.Error())
 		}
 	})
-	items.OnDelete(func(item *Item) {
+	items.OnDelete(func(item *connlist.Item) {
 		err := errors.Join(trayMenu.Remove(item), list.Remove(item))
 		if err != nil {
 			slog.Error(err.Error())
@@ -112,31 +113,21 @@ func main() {
 	a.Run()
 }
 
-func DeleteItemH(list *ItemsList) func(itm *Item) error {
-	return func(itm *Item) error {
+func DeleteItemH(list *connlist.Collection) func(itm *connlist.Item) error {
+	return func(itm *connlist.Item) error {
 		list.RemoveItem(itm)
 
 		return nil
 	}
 }
 
-func UpdateFormH(list *ItemsList) func(data window.FormData, itm *Item) error {
-	return func(updated window.FormData, item *Item) error {
-		proto, err := xray.ParseXrayConfig(updated.Link)
-		if err != nil {
-			return err
-		}
-
-		item.SetXRayConfig(proto.ConvertToGeneralConfig())
-		item.LinkVal = updated.Link
-		item.LabelVal = updated.Label
-		list.UpdateItem()
-
-		return nil
+func UpdateFormH() func(data window.FormData, itm *connlist.Item) error {
+	return func(updated window.FormData, item *connlist.Item) error {
+		return item.Update(updated.Link, updated.Label)
 	}
 }
 
-func AddFormH(list *ItemsList) func(data window.FormData) error {
+func AddFormH(list *connlist.Collection) func(data window.FormData) error {
 	return func(new window.FormData) error {
 		proto, err := xray.ParseXrayConfig(new.Link)
 		if err != nil {
@@ -147,13 +138,11 @@ func AddFormH(list *ItemsList) func(data window.FormData) error {
 			return errors.New("remark value is too long")
 		}
 
-		list.Add(NewItem(new.Label, new.Link, proto.ConvertToGeneralConfig(), list))
-
-		return nil
+		return list.AddItem(new.Label, new.Link)
 	}
 }
 
-func ConnectHandler(trayItems *traylist.List[*Item], client *vpn.Client) func(id int) error {
+func ConnectHandler(trayItems *traylist.List[*connlist.Item], client *vpn.Client) func(id int) error {
 	return func(id int) error {
 		// If clicked item is connected - just disconnect and return.
 		if trayItems.IsActive(id) {

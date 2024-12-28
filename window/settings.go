@@ -197,20 +197,20 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 		} else {
 			activeIcon.SetResource(nil)
 		}
-		if id != -1 && id == selectedItem {
+		if id == selectedItem {
 			updateForm.ToggleHide(val.Active())
 		}
 
 		label.SetText(fmt.Sprintf("%s [%s]", val.Label(), val.XRayConfig()["Address"]))
 
 		if _, ok := activeNetStats[id]; !ok {
-			activeNetStats[id] = customwidget.NewLiveNetworkStats(w.ctx, val.Recorder())
+			activeNetStats[id] = customwidget.NewLiveNetworkStats(w.ctx, val)
 			o.(*fyne.Container).Objects[2].(*fyne.Container).Objects = activeNetStats[id].Objects
 		}
 
 		if _, ok := activeCharts[id]; !ok {
 			activeCharts[id] = customwidget.NewLiveNetworkChart(w.ctx, " ● "+lang.L("upload"), "● "+lang.L("download"),
-				fyne.NewSize(250, 100), val.Recorder())
+				fyne.NewSize(250, 100), val)
 		}
 
 		if _, ok := renderedBadges[id]; !ok {

@@ -1,6 +1,8 @@
-package main
+package connlist
 
-type ItemsList struct {
+// Collection represents a collection of items.
+// Is used to easily pass events and update the UI state in one place (on{*} methods).
+type Collection struct {
 	items []*Item
 
 	onAdd    func(item *Item)
@@ -8,8 +10,8 @@ type ItemsList struct {
 	onChange func()
 }
 
-func NewItemsList() *ItemsList {
-	items := &ItemsList{items: make([]*Item, 0)}
+func New() *Collection {
+	items := &Collection{items: make([]*Item, 0)}
 	items.OnAdd(func(item *Item) {})
 	items.OnDelete(func(item *Item) {})
 	items.OnChange(func() {})
@@ -17,7 +19,7 @@ func NewItemsList() *ItemsList {
 	return items
 }
 
-func (l *ItemsList) AllUntyped() *[]any {
+func (l *Collection) AllUntyped() *[]any {
 	bindItems := make([]any, len(l.All()))
 	for i, item := range l.All() {
 		bindItems[i] = item
@@ -26,7 +28,7 @@ func (l *ItemsList) AllUntyped() *[]any {
 	return &bindItems
 }
 
-func (l *ItemsList) OnAdd(onAdd func(item *Item)) {
+func (l *Collection) OnAdd(onAdd func(item *Item)) {
 	l.onAdd = func(i *Item) {
 		onAdd(i)
 		l.onChange()
@@ -34,41 +36,32 @@ func (l *ItemsList) OnAdd(onAdd func(item *Item)) {
 }
 
 // OnDelete note: provided method is called before the actual deletion of the item.
-func (l *ItemsList) OnDelete(onDelete func(item *Item)) {
+func (l *Collection) OnDelete(onDelete func(item *Item)) {
 	// We do not wrap onChange because item is not actually deleted when l.onDelete called
 	l.onDelete = onDelete
 }
 
-func (l *ItemsList) OnChange(onChange func()) {
+func (l *Collection) OnChange(onChange func()) {
 	l.onChange = onChange
 }
 
-func (l *ItemsList) All() []*Item {
+func (l *Collection) All() []*Item {
 	return l.items
 }
 
-func (l *ItemsList) Add(new *Item) int {
-	l.items = append(l.items, new)
-	l.onAdd(new)
-
-	return len(l.items) - 1
-}
-
-func (l *ItemsList) Get(itm *Item) (*Item, int) {
-	for i, item := range l.items {
-		if item == itm {
-			return l.items[i], i
-		}
+func (l *Collection) AddItem(label, link string) error {
+	item, err := newItem(label, link, l)
+	if err != nil {
+		return err
 	}
 
-	return nil, 0
+	l.items = append(l.items, item)
+	l.onAdd(item)
+
+	return nil
 }
 
-func (l *ItemsList) UpdateItem() {
-	l.onChange()
-}
-
-func (l *ItemsList) RemoveItem(del *Item) {
+func (l *Collection) RemoveItem(del *Item) {
 	for i, item := range l.items {
 		if item == del {
 			l.remove(i)
@@ -76,7 +69,7 @@ func (l *ItemsList) RemoveItem(del *Item) {
 	}
 }
 
-func (l *ItemsList) remove(i int) {
+func (l *Collection) remove(i int) {
 	if len(l.items) < i {
 		return
 	}
