@@ -2,11 +2,12 @@ package netchart
 
 import (
 	"context"
-	"math"
 	"slices"
 	"sync"
 	"time"
 )
+
+const bytesToMb = 125000
 
 type Source interface {
 	BytesRead() int
@@ -68,8 +69,8 @@ func (r *Recorder) Start() {
 					r.mu.RLock()
 					defer r.mu.RUnlock()
 
-					rawRead := math.Round(float64(r.ReadSinceLast() / 125000))
-					rawWritten := math.Round(float64(r.WrittenSinceLast() / 125000))
+					rawRead := float64(r.ReadSinceLast() / bytesToMb)
+					rawWritten := float64(r.WrittenSinceLast() / bytesToMb)
 
 					if len(r.recordedRead) > r.recordLimit {
 						r.recordedRead = slices.Delete(r.recordedRead, 0, 1)
