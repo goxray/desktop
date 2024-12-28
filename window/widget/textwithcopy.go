@@ -12,6 +12,7 @@ import (
 // TextWithCopy represents a widget.RichText with copy button attached to the top right corner.
 type TextWithCopy struct {
 	content   *widget.RichText
+	copyBtn   *widget.Button
 	container *fyne.Container
 	clipboard fyne.Clipboard
 }
@@ -19,18 +20,23 @@ type TextWithCopy struct {
 func NewTextWithCopy(clipboard fyne.Clipboard) *TextWithCopy {
 	richText := widget.NewRichTextFromMarkdown("configuration info")
 
+	copyBtn := widget.NewButtonWithIcon(
+		"", theme.NewColoredResource(theme.ContentCopyIcon(), customtheme.ColorNameTextMuted), func() {
+			clipboard.SetContent(richText.String())
+		},
+	)
+
 	// Push copy btn to the right top corner
-	copyConfigBtn := container.NewBorder(container.NewBorder(nil, nil, nil, container.NewPadded(container.NewPadded(
-		widget.NewButtonWithIcon(
-			"", theme.NewColoredResource(theme.ContentCopyIcon(), customtheme.ColorNameTextMuted), func() {
-				clipboard.SetContent(richText.String())
-			},
-		),
-	))), nil, nil, nil)
+	cnt := container.NewStack(container.NewBorder(container.NewBorder(nil, nil, nil,
+		container.NewPadded(container.NewPadded(
+			copyBtn,
+		)),
+	), nil, nil, nil), container.NewVScroll(richText))
 
 	return &TextWithCopy{
 		content:   richText,
-		container: container.NewStack(copyConfigBtn, container.NewVScroll(richText)),
+		container: cnt,
+		copyBtn:   copyBtn,
 		clipboard: clipboard,
 	}
 }
@@ -39,7 +45,15 @@ func (t *TextWithCopy) Container() *fyne.Container {
 	return t.container
 }
 
-// ParseMarkdown updates the TextWithCopy RichText content.
-func (t *TextWithCopy) ParseMarkdown(text string) {
-	t.content.ParseMarkdown(text)
+// ParseMarkdown updates the TextWithCopy RichText content and sets the text that will be copied to clipboard on copy button press.
+func (t *TextWithCopy) ParseMarkdown(markdown string, toBeCopied string) {
+	t.copyBtn.OnTapped = func() {
+		if toBeCopied == "" {
+			toBeCopied = markdown
+		}
+
+		t.clipboard.SetContent(toBeCopied)
+	}
+
+	t.content.ParseMarkdown(markdown)
 }

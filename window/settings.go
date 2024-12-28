@@ -230,7 +230,7 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 		val := getListItem(w.list, id)
 
 		netStatsChart.Objects[0] = activeCharts[id]
-		configInfoText.ParseMarkdown(xrayConfigToMd(val.XRayConfig()))
+		configInfoText.ParseMarkdown(xrayConfigToStrings(val.XRayConfig()))
 
 		updateForm.ToggleHide(val.Active())
 		updateForm.SetInputs(val.Label(), val.Link())
@@ -317,7 +317,7 @@ func getListItem(list binding.DataList, id widget.ListItemID) ListItem {
 	return untyped.(ListItem)
 }
 
-func xrayConfigToMd(x map[string]string) string {
+func xrayConfigToStrings(x map[string]string) (md string, toCopy string) {
 	includeOrder := []string{
 		"Address",
 		"Type", "TLS", "Protocol", "Port",
@@ -325,14 +325,14 @@ func xrayConfigToMd(x map[string]string) string {
 		"Security", "Aid", "Host", "Network", "Path", "ALPN", "Authority", "ServiceName", "Mode",
 	}
 
-	str := ""
 	for _, k := range includeOrder {
 		if x[k] == "" {
 			continue
 		}
 
-		str += fmt.Sprintf("**%s**: %s\n\n", lang.L(k), x[k])
+		md += fmt.Sprintf("**%s**: %s\n\n", lang.L(k), x[k])
+		toCopy += fmt.Sprintf("%s: %s\n", lang.L(k), x[k])
 	}
 
-	return str
+	return md, toCopy
 }
