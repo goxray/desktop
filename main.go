@@ -85,6 +85,7 @@ func main() {
 		settingsWindow.Show()
 	})
 	trayMenu.OnItemClick(ConnectHandler(trayMenu, client))
+	trayMenu.Show()
 
 	// Update all UI elements when items are updated.
 	items.OnAdd(func(item *connlist.Item) {
@@ -108,8 +109,6 @@ func main() {
 	})
 
 	settingsLoader.Load(items) // Initialize items from savefile and update windows/tray with new items.
-
-	trayMenu.Show()
 	a.Run()
 }
 

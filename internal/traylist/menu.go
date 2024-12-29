@@ -16,7 +16,8 @@ func (m *Menu[T]) Menu() *fyne.Menu {
 }
 
 func (m *Menu[T]) Insert(new *trayItem[T]) {
-	m.menu.Items = slices.Insert(m.menu.Items, 2, new.menuItem)
+	const stepsFromBottom = 4 // means quit,separator,settings,separator
+	m.menu.Items = slices.Insert(m.menu.Items, len(m.menu.Items)-stepsFromBottom, new.menuItem)
 }
 
 func (m *Menu[T]) RemoveItem(itm *fyne.MenuItem) {
