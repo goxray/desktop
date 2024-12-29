@@ -7,7 +7,7 @@ import (
 	"os"
 
 	vpn "github.com/goxray/tun/pkg/client"
-	"github.com/lilendian0x00/xray-knife/xray"
+	"github.com/lilendian0x00/xray-knife/v2/xray"
 
 	"github.com/goxray/ui/internal/netchart"
 )

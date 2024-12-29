@@ -8,17 +8,17 @@ require (
 	github.com/ajstarks/fc v0.0.0-20240825205253-42aeab80ccce
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264
 	github.com/goxray/tun v0.0.0-20241223225711-da128c38e85f
-	github.com/lilendian0x00/xray-knife v1.6.14-0.20241211194505-363c66ecace3
+	github.com/lilendian0x00/xray-knife/v2 v2.14.21
 )
 
 require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
-	github.com/andybalholm/brotli v1.1.0 // indirect
-	github.com/cloudflare/circl v1.4.0 // indirect
+	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/cloudflare/circl v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140 // indirect
 	github.com/eycorsican/go-tun2socks v1.16.11 // indirect
-	github.com/fatih/color v1.17.0 // indirect
+	github.com/fatih/color v1.18.0 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/fredbi/uri v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -48,8 +48,9 @@ require (
 	github.com/jackpal/gateway v1.0.15 // indirect
 	github.com/jeandeaual/go-locale v0.0.0-20240223122105-ce5225dcaa49 // indirect
 	github.com/jsummers/gobmp v0.0.0-20151104160322-e2ba15ffa76e // indirect
-	github.com/klauspost/compress v1.17.8 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
+	github.com/lilendian0x00/xray-knife v1.6.14-0.20241211194505-363c66ecace3 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.4.0 // indirect
