@@ -3,11 +3,28 @@ package widget
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
 	customtheme "github.com/goxray/ui/theme"
 )
+
+type hoverable struct {
+	fyne.CanvasObject
+	onMouseIn  func()
+	onMouseOut func()
+}
+
+func (h *hoverable) MouseIn(*desktop.MouseEvent) {
+	h.onMouseIn()
+}
+
+func (h *hoverable) MouseOut() {
+	h.onMouseOut()
+}
+
+func (h *hoverable) MouseMoved(*desktop.MouseEvent) {}
 
 // TextWithCopy represents a widget.RichText with copy button attached to the top right corner.
 type TextWithCopy struct {
@@ -25,13 +42,20 @@ func NewTextWithCopy(clipboard fyne.Clipboard) *TextWithCopy {
 			clipboard.SetContent(richText.String())
 		},
 	)
+	copyBtn.Hidden = true
+
+	hv := &hoverable{
+		CanvasObject: container.NewStack(),
+		onMouseIn:    copyBtn.Show,
+		onMouseOut:   copyBtn.Hide,
+	}
 
 	// Push copy btn to the right top corner
 	cnt := container.NewStack(container.NewBorder(container.NewBorder(nil, nil, nil,
 		container.NewPadded(container.NewPadded(
 			copyBtn,
 		)),
-	), nil, nil, nil), container.NewVScroll(richText))
+	), nil, nil, nil), container.NewVScroll(richText), hv)
 
 	return &TextWithCopy{
 		content:   richText,
