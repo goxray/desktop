@@ -3,10 +3,8 @@ package main
 import (
 	"embed"
 	"errors"
-	"fmt"
 	"log/slog"
 	_ "net/http/pprof"
-	"os"
 	"runtime/debug"
 	_ "unsafe"
 
@@ -16,7 +14,6 @@ import (
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/lang"
 	"fyne.io/systray"
-	vpn "github.com/goxray/tun/pkg/client"
 	"github.com/lilendian0x00/xray-knife/v2/xray"
 
 	"github.com/goxray/ui/icon"
@@ -63,13 +60,6 @@ func main() {
 		slog.Warn("failed to init translations", "error", err)
 	}
 
-	client, err := vpn.NewClientWithOpts(vpn.Config{
-		Logger: slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})),
-	})
-	if err != nil {
-		panic(fmt.Errorf("create vpn client: %v", err))
-	}
-
 	items := connlist.New()
 	list := binding.BindUntypedList(items.AllUntyped())
 	trayMenu := traylist.NewDefault[*connlist.Item](lang.L(AppTitleName), toDesktopApp(a), MenuIcons)
@@ -84,7 +74,7 @@ func main() {
 		}
 		settingsWindow.Show()
 	})
-	trayMenu.OnItemClick(ConnectHandler(trayMenu, client))
+	trayMenu.OnItemClick(ConnectHandler(trayMenu))
 	trayMenu.Show()
 
 	// Update all UI elements when items are updated.
@@ -107,6 +97,14 @@ func main() {
 			settingsWindow.Refresh()
 		}
 	})
+	// Disconnect any active connections on quitting/panic.
+	defer func() {
+		if trayMenu.HasActive() {
+			if err := trayMenu.GetActive().Disconnect(); err != nil {
+				slog.Error(err.Error())
+			}
+		}
+	}()
 
 	settingsLoader.Load(items) // Initialize items from savefile and update windows/tray with new items.
 	a.Run()
@@ -141,7 +139,7 @@ func AddFormH(list *connlist.Collection) func(data window.FormData) error {
 	}
 }
 
-func ConnectHandler(trayItems *traylist.List[*connlist.Item], client *vpn.Client) func(id int) error {
+func ConnectHandler(trayItems *traylist.List[*connlist.Item]) func(id int) error {
 	return func(id int) error {
 		// If clicked item is connected - just disconnect and return.
 		if trayItems.IsActive(id) {
