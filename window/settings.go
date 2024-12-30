@@ -44,7 +44,8 @@ func NewSettings[T ListItem](
 	w.Resize(fyne.NewSize(750, 450))
 
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Settings[T]{
+
+	s := &Settings[T]{
 		window:    w,
 		onAdd:     onAdd,
 		onUpdate:  onUpdate,
@@ -53,6 +54,9 @@ func NewSettings[T ListItem](
 		ctx:       ctx,
 		ctxCancel: cancel,
 	}
+	s.init()
+
+	return s
 }
 
 func (w *Settings[T]) Refresh() {
@@ -68,7 +72,22 @@ func (w *Settings[T]) OnClosed(fn func()) {
 	})
 }
 
-func (w *Settings[T]) Show() {
+func (w *Settings[T]) init() {
+	content := container.NewBorder(nil,
+		container.NewVBox( // Footer with build info for the whole window
+			widget.NewSeparator(),
+			container.NewBorder(nil, nil, nil, widget.NewRichTextFromMarkdown(
+				fmt.Sprintf("[%s](%s) *v%s build %d*",
+					fyne.CurrentApp().Metadata().Name,
+					repositoryLink,
+					fyne.CurrentApp().Metadata().Version,
+					fyne.CurrentApp().Metadata().Build),
+			)),
+		),
+		nil, nil,
+	)
+	w.window.SetContent(content)
+
 	tabs := container.NewAppTabs(
 		container.NewTabItemWithIcon( // Connections list settings tab
 			lang.L("Configs"),
@@ -83,21 +102,13 @@ func (w *Settings[T]) Show() {
 	)
 	tabs.SetTabLocation(container.TabLocationTop)
 
-	w.window.SetContent(container.NewBorder(nil,
-		container.NewVBox( // Footer with build info for the whole window
-			widget.NewSeparator(),
-			container.NewBorder(nil, nil, nil, widget.NewRichTextFromMarkdown(
-				fmt.Sprintf("[%s](%s) *v%s build %d*",
-					fyne.CurrentApp().Metadata().Name,
-					repositoryLink,
-					fyne.CurrentApp().Metadata().Version,
-					fyne.CurrentApp().Metadata().Build),
-			)),
-		),
-		nil, nil,
-		tabs, // Actual window content (tabs)
-	))
+	content.Objects = append(content.Objects, tabs)
 
+	w.Refresh()
+}
+
+func (w *Settings[T]) Show() {
+	w.Refresh()
 	w.window.RequestFocus()
 	w.window.Show()
 }

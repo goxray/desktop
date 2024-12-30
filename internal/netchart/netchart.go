@@ -103,22 +103,29 @@ func (c *Chart) UpdateNamed(stats map[string][]float64, clrs map[string]color.RG
 		charts[i].Maxvalue = maxValue
 	}
 
-	rect := canvas2.NewRectangle(color.RGBA{200, 255, 255, 0})
+	rect := canvas2.NewRectangle(color.RGBA{R: 200, G: 255, B: 255, A: 0})
 	rect.SetMinSize(fyne.NewSize(float32(c.canvas.Width), float32(c.canvas.Height)))
 	c.canvas.Container.RemoveAll()
 	c.canvas.Container.Add(rect)
 	defer c.canvas.Container.Refresh()
 
 	size := 5.
+	gridColor := color.RGBA{R: 128, G: 128, B: 128, A: 255}
 	for i := range charts {
-		charts[i].YAxis(c.canvas, size-0.3, 0, maxValue, maxValue/4, "%0.f", true)
+		chartColor := charts[i].Color
+		charts[i].Color = gridColor
+		charts[i].YAxis(c.canvas, size-1, 0, maxValue, maxValue/4, "%0.f", true)
+		charts[i].Color = chartColor
 		charts[i].Scatter(c.canvas, c.lineSize)
 		charts[i].Line(c.canvas, c.lineSize)
 
 	}
 
-	// TODO: dynamically get from Chart, hardcoded for now
-	//  (im too lazy to fix this right now, look at the beautifyl graph!!!)
+	if len(charts) != 2 {
+		return nil
+	}
+
+	// Hardcoded, ok for current goal.
 	offset := 17.
 	midx := charts[0].Left + ((charts[0].Right - charts[0].Left) / 2) + 14
 	c.canvas.CText(midx, charts[0].Bottom-offset, size, charts[0].Title, charts[0].Color)
