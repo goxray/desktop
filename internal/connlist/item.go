@@ -2,9 +2,11 @@ package connlist
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	vpn "github.com/goxray/tun/pkg/client"
 	"github.com/lilendian0x00/xray-knife/v2/xray"
@@ -51,7 +53,10 @@ func (c *Item) init() error {
 		return fmt.Errorf("invalid xray link: %s", err)
 	}
 
-	c.xconfigMap = c.xrayBaseConfigToMap(proto.ConvertToGeneralConfig())
+	c.xconfigMap, err = c.xrayBaseConfigToMap(proto)
+	if err != nil {
+		return fmt.Errorf("parse xray config to map: %s", err)
+	}
 
 	cl, err := vpn.NewClientWithOpts(vpn.Config{
 		Logger: slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})),
@@ -106,8 +111,9 @@ func (c *Item) XRayConfig() map[string]string {
 	return c.xconfigMap
 }
 
-func (c *Item) xrayBaseConfigToMap(x xray.GeneralConfig) map[string]string {
-	return map[string]string{
+func (c *Item) xrayBaseConfigToMap(proto xray.Protocol) (map[string]string, error) {
+	x := proto.ConvertToGeneralConfig()
+	xmap := map[string]string{
 		"Protocol": x.Protocol, "Address": x.Address,
 		"Security": x.Security, "Aid": x.Aid, "Host": x.Host,
 		"ID": x.ID, "Network": x.Network, "Path": x.Path,
@@ -117,4 +123,25 @@ func (c *Item) xrayBaseConfigToMap(x xray.GeneralConfig) map[string]string {
 		"Mode": x.Mode, "Type": x.Type,
 		"OrigLink": x.OrigLink,
 	}
+
+	// Marshalling will marshall the actual protocol, like proto.(*xray.Vmess)
+	b, err := json.Marshal(proto)
+	if err != nil {
+		return nil, fmt.Errorf("marshal xray protocol: %w", err)
+	}
+
+	// Unmarshalling it will add protocol-specific values to the map.
+	if err := json.Unmarshal(b, &xmap); err != nil {
+		return nil, fmt.Errorf("unmarshal xray protocol: %w", err)
+	}
+
+	// Make all keys in map start with uppercase letter.
+	for k, v := range xmap {
+		if strings.Title(k) != k {
+			xmap[strings.Title(k)] = v
+			delete(xmap, k)
+		}
+	}
+
+	return xmap, nil
 }

@@ -278,7 +278,7 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 
 // createBadgesForVal generates badges set for list value.
 func createBadgesForVal(val ListItem) []fyne.CanvasObject {
-	showTagsFor := []string{"Protocol", "Type", "TLS"}
+	showTagsFor := []string{"Protocol", "TLS", "Flow"}
 	// Specify specific key:values that should be marked with different badge color.
 	specialColors := map[string]map[string]color.Color{
 		// TLS none is a terrible security issue, mark it red.
@@ -287,7 +287,10 @@ func createBadgesForVal(val ListItem) []fyne.CanvasObject {
 
 	badges := make([]fyne.CanvasObject, 0, len(showTagsFor))
 	for _, tag := range showTagsFor {
-		value := val.XRayConfig()[tag]
+		value, ok := val.XRayConfig()[tag]
+		if !ok || value == "" {
+			continue
+		}
 		clr := theme.Color(customtheme.ColorNameTextMuted)
 		if colorsVal, ok := specialColors[tag]; ok && colorsVal[value] != nil {
 			clr = colorsVal[value]
@@ -329,14 +332,21 @@ func getListItem(list binding.DataList, id widget.ListItemID) ListItem {
 }
 
 func xrayConfigToStrings(x map[string]string) (md string, toCopy string) {
+	const separator = "separator"
 	includeOrder := []string{
 		"Address",
 		"Type", "TLS", "Protocol", "Port",
 		"ID", "Remark", "TlsFingerprint", "SNI",
 		"Security", "Aid", "Host", "Network", "Path", "ALPN", "Authority", "ServiceName", "Mode",
+		separator, // separate base info from protocol-specific info
+		"Flow", "Pbk", "Sid", "Spx", "Fp",
 	}
 
 	for _, k := range includeOrder {
+		if k == separator {
+			md += fmt.Sprintf("---\n") // draw horizontal line in MD.
+			continue
+		}
 		if x[k] == "" {
 			continue
 		}
