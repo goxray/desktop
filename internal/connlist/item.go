@@ -37,24 +37,9 @@ func newItem(label, link string, parent *Collection) (*Item, error) {
 		label: label,
 		link:  link,
 	}
-	proto, err := xray.ParseXrayConfig(link)
-	if err != nil {
-		return nil, fmt.Errorf("invalid xray link: %s", err)
+	if err := itm.init(); err != nil {
+		return nil, err
 	}
-
-	itm.xconfigMap = itm.xrayBaseConfigToMap(proto.ConvertToGeneralConfig())
-
-	// TODO: too hardcoded, ok for now
-	cl, err := vpn.NewClientWithOpts(vpn.Config{
-		Logger: slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})),
-	})
-	if err != nil {
-		panic(fmt.Errorf("create vpn client: %v", err))
-	}
-	itm.client = cl
-
-	itm.recorder = netchart.NewRecorder(itm.client)
-	itm.recorder.Start()
 	itm.parent = parent
 
 	return itm, nil
@@ -119,10 +104,6 @@ func (c *Item) Link() string {
 
 func (c *Item) XRayConfig() map[string]string {
 	return c.xconfigMap
-}
-
-func (c *Item) SetXRayConfig(cfg xray.GeneralConfig) {
-	c.xconfigMap = c.xrayBaseConfigToMap(cfg)
 }
 
 func (c *Item) xrayBaseConfigToMap(x xray.GeneralConfig) map[string]string {
