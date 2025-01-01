@@ -17,15 +17,19 @@ const (
 )
 
 // AppTheme represents small styling additions to fyne default theme.
-type AppTheme struct{}
+type AppTheme struct {
+	Variant fyne.ThemeVariant
+}
 
-func (m AppTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color {
+func (m AppTheme) Color(c fyne.ThemeColorName, _ fyne.ThemeVariant) color.Color {
+	v := m.Variant
+
 	if v == theme.VariantDark {
 		switch c {
 		case theme.ColorNameBackground:
-			return color.RGBA{R: 0x29, G: 0x29, B: 0x29, A: 0xff}
+			return color.RGBA{R: 30, G: 31, B: 34, A: 255}
 		case theme.ColorNameSeparator:
-			return color.RGBA{R: 0x19, G: 0x19, B: 0x19, A: 0x55}
+			return color.RGBA{R: 50, G: 51, B: 54, A: 255}
 		case theme.ColorNamePrimary:
 			return color.RGBA{R: 50, G: 107, B: 199, A: 255}
 		case theme.ColorNameSuccess:
@@ -44,9 +48,9 @@ func (m AppTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color 
 		case theme.ColorNameSuccess:
 			return color.RGBA{R: 49, G: 181, B: 64, A: 255}
 		case theme.ColorNameError:
-			return color.RGBA{237, 72, 66, 255}
+			return color.RGBA{R: 237, G: 72, B: 66, A: 255}
 		case theme.ColorNamePrimary:
-			return color.RGBA{84, 139, 235, 255}
+			return color.RGBA{R: 84, G: 139, B: 235, A: 255}
 		}
 	}
 
@@ -58,7 +62,7 @@ func (m AppTheme) customColor(c fyne.ThemeColorName, v fyne.ThemeVariant) color.
 	case ColorNameTextMuted:
 		switch v {
 		case theme.VariantDark:
-			return color.RGBA{R: 110, G: 110, B: 110, A: 255}
+			return color.RGBA{R: 140, G: 140, B: 140, A: 255}
 		case theme.VariantLight:
 			return color.RGBA{R: 160, G: 160, B: 160, A: 255}
 		}

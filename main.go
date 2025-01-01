@@ -3,10 +3,9 @@ package main
 import (
 	"embed"
 	"errors"
+	"flag"
 	"log/slog"
-	_ "net/http/pprof"
 	"runtime/debug"
-	_ "unsafe"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -42,7 +41,7 @@ var MenuIcons = &traylist.IconSet{
 //go:embed translation
 var translations embed.FS
 
-func init() {
+func initialize() {
 	debug.SetGCPercent(10)
 	root.PromptRootAccess()
 }
@@ -54,7 +53,8 @@ func onstart() {
 
 func main() {
 	a := app.New()
-	a.Settings().SetTheme(&theme.AppTheme{})
+	initialize()
+	a.Settings().SetTheme(&theme.AppTheme{Variant: getThemeVariant()})
 	a.Lifecycle().SetOnStarted(onstart)
 	if err := lang.AddTranslationsFS(translations, "translation"); err != nil {
 		slog.Warn("failed to init translations", "error", err)
@@ -165,4 +165,16 @@ func toDesktopApp(a fyne.App) desktop.App {
 	}
 
 	return desk
+}
+
+func getThemeVariant() fyne.ThemeVariant {
+	var fThemeVariant = flag.Int("theme_variant", 0, "set app theme variant")
+	flag.Bool("xroot", false, "is root")
+	flag.Parse()
+
+	if fThemeVariant != nil {
+		return fyne.ThemeVariant(*fThemeVariant)
+	}
+
+	return fyne.CurrentApp().Settings().ThemeVariant()
 }

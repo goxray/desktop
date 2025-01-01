@@ -5,10 +5,11 @@ package root
 
 import (
 	"os"
+	"slices"
 )
 
-const appendFlag = "-xroot"
+const appendFlag = "-xroot=true"
 
 func hasPermissions() bool {
-	return os.Args[len(os.Args)-1] == appendFlag
+	return slices.Contains(os.Args[1:], appendFlag)
 }
