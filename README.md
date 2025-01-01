@@ -1,4 +1,4 @@
-# <img width="25px" src="icon/assets/app.png" alt="app logo"> Go Desktop VPN client for XRay (macOS)
+# <img width="25px" src="icon/assets/app.png" alt="app logo"> GoXRay: Desktop VPN client for XRay (macOS)
 ![Static Badge](https://img.shields.io/badge/OS-macOS-blue?style=flat&logo=apple&logoColor=white&logoSize=auto&color=blue)
 ![Static Badge](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go&logoColor=white)
 
@@ -34,7 +34,7 @@ Please visit https://xtls.github.io/en for more info.
 > Go to `System Settings` > `General` > `Login Items & Extensions` > `Open at Login`, then press `+` and browse for GoXRay.app
 
 Get the latest release app bundle from [Releases](https://github.com/goxray/desktop/releases) and... just run it.
-You will be prompted for privileged access, and your Go XRay VPN is ready.
+You will be prompted for privileged access, and your GoXRay VPN is ready.
 Don't forget to add the app to your `Applications` and `Open at Login` items!
 
 ### 🛠️ Building the project

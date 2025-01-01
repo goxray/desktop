@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	AppTitleName = "Go XRay VPN Client"
+	AppTitleName = "GoXRay VPN Client"
 )
 
 var MenuIcons = &traylist.IconSet{

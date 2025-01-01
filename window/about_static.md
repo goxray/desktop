@@ -1,4 +1,4 @@
-# Go VPN client for XRay
+# GoXRay: VPN client for XRay
 [https://github.com/goxray](https://github.com/goxray)
 
 This project brings fully functioning [XRay](https://github.com/XTLS/Xray-core) VPN client implementation in Go.

@@ -27,7 +27,7 @@ func runItselfAsRoot() {
 	if err != nil {
 		panic(fmt.Errorf("could not get executable path: %v", err))
 	}
-	cmd := elevate.WithIcon(filepath.Dir(p)+appPackageIcons).WithPrompt("Go XRay Client requires admin privileges").
+	cmd := elevate.WithIcon(filepath.Dir(p)+appPackageIcons).WithPrompt("GoXRay requires admin privileges").
 		Command(p, append(os.Args[1:], appendFlag, themeFlag)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
