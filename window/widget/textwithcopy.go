@@ -55,7 +55,7 @@ func NewTextWithCopy(clipboard fyne.Clipboard) *TextWithCopy {
 		container.NewPadded(container.NewPadded(
 			copyBtn,
 		)),
-	), nil, nil, nil), container.NewVScroll(richText), hv)
+	), nil, nil, nil), container.NewScroll(richText), hv)
 
 	return &TextWithCopy{
 		content:   richText,
