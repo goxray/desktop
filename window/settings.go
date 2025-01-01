@@ -186,8 +186,8 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 
 	list.CreateItem = func() fyne.CanvasObject {
 		dataStats := container.NewHBox(
-			container.NewPadded(canvas.NewText("↑0.0 "+lang.L("GB"), theme.Color(customtheme.ColorNameTextMuted))),
-			container.NewPadded(canvas.NewText("↓0.0 "+lang.L("GB"), theme.Color(customtheme.ColorNameTextMuted))),
+			container.NewPadded(canvas.NewText("↑... "+lang.L("GB"), theme.Color(customtheme.ColorNameTextMuted))),
+			container.NewPadded(canvas.NewText("↓... "+lang.L("GB"), theme.Color(customtheme.ColorNameTextMuted))),
 		)
 
 		connName := container.New(layout.NewCustomPaddedLayout(-theme.Padding()*1.5, 0, 0, 0), widget.NewLabel("template"))
@@ -202,6 +202,7 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 		activeIcon := o.(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Icon)
 		label := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label)
 		badges := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*fyne.Container)
+		netStats := o.(*fyne.Container).Objects[2].(*fyne.Container)
 
 		val := getListItem(w.list, id)
 
@@ -218,7 +219,7 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 
 		if _, ok := activeNetStats[id]; !ok {
 			activeNetStats[id] = customwidget.NewLiveNetworkStats(w.ctx, val)
-			o.(*fyne.Container).Objects[2].(*fyne.Container).Objects = activeNetStats[id].Objects
+			netStats.Objects = activeNetStats[id].Objects
 		}
 
 		if _, ok := activeCharts[id]; !ok {
