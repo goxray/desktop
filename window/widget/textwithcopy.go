@@ -36,6 +36,7 @@ type TextWithCopy struct {
 
 func NewTextWithCopy(clipboard fyne.Clipboard) *TextWithCopy {
 	richText := widget.NewRichTextFromMarkdown("configuration info")
+	richText.Wrapping = fyne.TextWrapWord
 
 	copyBtn := widget.NewButtonWithIcon(
 		"", theme.NewColoredResource(theme.ContentCopyIcon(), customtheme.ColorNameTextMuted), func() {
