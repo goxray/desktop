@@ -13,3 +13,7 @@ Please visit [https://xtls.github.io/en](https://xtls.github.io/en) for more inf
 - Tunnel is created to process all incoming IP packets via TCP/IP stack
 - All outbound traffic is routed through the XRay inbound proxy
 - All incoming packets are routed back via TUN device
+
+## Support
+
+[Create issue on GitHub 🔗](https://github.com/goxray/desktop/issues/new)
