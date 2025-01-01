@@ -15,7 +15,6 @@ var _ fyne.Layout = (*badgeLayout)(nil)
 type badgeLayout struct{}
 
 // Layout is called to pack all child objects into a specified size.
-// For PaddedLayout this sets all children to the full size passed minus padding all around.
 func (l badgeLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 	padding := theme.Padding()
 	pos := fyne.NewPos(padding, padding*2)
@@ -31,7 +30,6 @@ func (l badgeLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 }
 
 // MinSize finds the smallest size that satisfies all the child objects.
-// For PaddedLayout this is determined simply as the MinSize of the largest child plus padding all around.
 func (l badgeLayout) MinSize(objects []fyne.CanvasObject) (min fyne.Size) {
 	for _, child := range objects {
 		if !child.Visible() {
@@ -40,7 +38,7 @@ func (l badgeLayout) MinSize(objects []fyne.CanvasObject) (min fyne.Size) {
 
 		min = min.Max(child.MinSize())
 	}
-	min = min.Add(fyne.NewSize(2*theme.Padding(), 2*theme.Padding()))
+	min = min.Add(fyne.NewSize(2*theme.Padding(), 4*theme.Padding()))
 	return
 }
 
@@ -48,14 +46,14 @@ func (l badgeLayout) MinSize(objects []fyne.CanvasObject) (min fyne.Size) {
 func NewBadge(label string, clr color.Color) *fyne.Container {
 	back := &canvas.Rectangle{
 		StrokeColor:  clr,
-		StrokeWidth:  0.6,
-		CornerRadius: 6,
+		StrokeWidth:  0.5,
+		CornerRadius: 4,
 	}
 	text := &canvas.Text{
 		Color:     clr,
 		Text:      label,
 		Alignment: fyne.TextAlignCenter,
-		TextSize:  theme.TextSize() * 0.8,
+		TextSize:  theme.TextSize() * 0.75,
 	}
 
 	return container.New(badgeLayout{}, text, back)

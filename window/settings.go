@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/lang"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
@@ -189,17 +190,18 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 			container.NewPadded(canvas.NewText("↓0.0 "+lang.L("GB"), theme.Color(customtheme.ColorNameTextMuted))),
 		)
 
-		cnt := container.NewBorder(nil, nil,
+		connName := container.New(layout.NewCustomPaddedLayout(-theme.Padding()*1.5, 0, 0, 0), widget.NewLabel("template"))
+		connTags := container.New(layout.NewCustomPaddedLayout(-theme.Padding()*4, theme.Padding()*6.5, 0, 0), container.NewHBox())
+		return container.NewBorder(nil, nil,
 			container.NewPadded(widget.NewIcon(nil)),
-			dataStats, container.NewHBox(widget.NewLabel("template"), container.NewHBox()),
+			dataStats, container.New(layout.NewCustomPaddedVBoxLayout(theme.Padding()*1.5), connName, connTags),
 		)
-		return cnt
 	}
 	list.UpdateItem = func(id widget.ListItemID, o fyne.CanvasObject) {
 		defer itemSettings.Refresh()
 		activeIcon := o.(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Icon)
-		label := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label)
-		badges := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container)
+		label := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label)
+		badges := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*fyne.Container)
 
 		val := getListItem(w.list, id)
 
