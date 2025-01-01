@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"slices"
 	"strings"
 
 	vpn "github.com/goxray/tun/pkg/client"
@@ -135,10 +136,18 @@ func (c *Item) xrayBaseConfigToMap(proto xray.Protocol) (map[string]string, erro
 		return nil, fmt.Errorf("unmarshal xray protocol: %w", err)
 	}
 
-	// Make all keys in map start with uppercase letter.
-	for k, v := range xmap {
+	// Keys that duplicate base protocol values.
+	removeDupKeys := []string{"add", "ps", "sni", "fp", "id", "OrigLink"}
+
+	// Make all keys in map start with uppercase letter and remove duplicate keys.
+	for k, _ := range xmap {
+		if slices.Contains(removeDupKeys, k) {
+			delete(xmap, k)
+			continue
+		}
+
 		if strings.Title(k) != k {
-			xmap[strings.Title(k)] = v
+			xmap[strings.Title(k)] = xmap[k]
 			delete(xmap, k)
 		}
 	}

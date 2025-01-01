@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"image/color"
+	"slices"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -348,9 +349,19 @@ func xrayConfigToStrings(x map[string]string) (md string, toCopy string) {
 	for _, k := range includeOrder {
 		if k == separator {
 			md += fmt.Sprintf("---\n") // draw horizontal line in MD.
+			toCopy += "\n"
 			continue
 		}
 		if x[k] == "" {
+			continue
+		}
+
+		md += fmt.Sprintf("**%s**: %s\n\n", lang.L(k), x[k])
+		toCopy += fmt.Sprintf("%s: %s\n", lang.L(k), x[k])
+	}
+
+	for k := range x {
+		if slices.Contains(includeOrder, k) || k == "" || x[k] == "" {
 			continue
 		}
 
