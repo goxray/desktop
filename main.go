@@ -79,7 +79,7 @@ func main() {
 
 	// Update all UI elements when items are updated.
 	items.OnAdd(func(item *connlist.Item) {
-		trayMenu.Add(item.Label(), item)
+		trayMenu.Add(item)
 		if err := list.Append(item); err != nil {
 			slog.Warn(err.Error())
 		}

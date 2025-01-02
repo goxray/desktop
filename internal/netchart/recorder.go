@@ -1,3 +1,5 @@
+//go:generate mockgen -destination=mocks/recorder_mocks.go -source=recorder.go -package=mocks -typed
+
 package netchart
 
 import (

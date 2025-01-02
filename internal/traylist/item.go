@@ -14,10 +14,10 @@ type trayItem[T value] struct {
 	menuItem *fyne.MenuItem
 }
 
-func newTrayItem[T value](label string, value T, desk desktop.App, iconSet IconSet) *trayItem[T] {
+func newTrayItem[T value](value T, desk desktop.App, iconSet IconSet) *trayItem[T] {
 	return &trayItem[T]{
 		value:    value,
-		menuItem: &fyne.MenuItem{Label: label, Icon: iconSet.NotSelected},
+		menuItem: &fyne.MenuItem{Label: value.Label(), Icon: iconSet.NotSelected},
 		desk:     desk,
 		iconSet:  iconSet,
 	}
@@ -25,10 +25,6 @@ func newTrayItem[T value](label string, value T, desk desktop.App, iconSet IconS
 
 func (ci *trayItem[T]) Value() T {
 	return ci.value
-}
-
-func (ci *trayItem[T]) SetValue(new T) {
-	ci.value = new
 }
 
 func (ci *trayItem[T]) setInProgress() {

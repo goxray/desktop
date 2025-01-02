@@ -46,7 +46,15 @@ func (l *Collection) OnChange(onChange func()) {
 }
 
 func (l *Collection) All() []*Item {
-	return l.items
+	res := make([]*Item, 0, len(l.items))
+	for _, item := range l.items {
+		if item == nil {
+			continue
+		}
+		res = append(res, item)
+	}
+
+	return res
 }
 
 func (l *Collection) AddItem(label, link string) error {

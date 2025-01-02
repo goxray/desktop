@@ -14,18 +14,12 @@ import (
 	"github.com/ajstarks/fc/chart"
 )
 
-type NetChart interface {
-	Container() *fyne.Container
-	UpdateNamed(stats map[string][]float64, clrs map[string]color.RGBA, order []string) error
-	Canvas() fc.Canvas
-}
-
 type Chart struct {
 	canvas   fc.Canvas
 	lineSize float64
 }
 
-func New(w, h, lineSize float64) NetChart {
+func New(w, h, lineSize float64) *Chart {
 	return &Chart{
 		canvas: fc.Canvas{
 			Container: container.NewWithoutLayout(canvas2.NewRectangle(color.RGBA{255, 255, 255, 0})),

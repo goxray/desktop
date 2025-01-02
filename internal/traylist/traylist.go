@@ -5,9 +5,9 @@ the UI elements for you and you can provide a generic value type for the items t
 package traylist
 
 import (
+	"errors"
 	"fmt"
 	"sync/atomic"
-	_ "unsafe"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/driver/desktop"
@@ -18,8 +18,8 @@ import (
 // defaultIconSet is iconSet set with default fyne icons.
 var defaultIconSet = func() *IconSet {
 	return &IconSet{
-		LogoPassive: theme.ColorPaletteIcon(),
-		LogoActive:  theme.ColorPaletteIcon(),
+		LogoPassive: theme.MediaPauseIcon(),
+		LogoActive:  theme.MediaPlayIcon(),
 
 		NotSelected: nil,
 		InProgress:  theme.MoreHorizontalIcon(),
@@ -28,6 +28,10 @@ var defaultIconSet = func() *IconSet {
 		Warning:     theme.WarningIcon(),
 	}
 }
+
+var (
+	ErrItemNotFound = errors.New("item not found")
+)
 
 type IconSet struct {
 	LogoPassive fyne.Resource
@@ -96,7 +100,7 @@ func New[T value](desk desktop.App, menu *fyne.Menu, insertIDx int, icons *IconS
 	}
 
 	menuBar := &List[T]{
-		menu:          &Menu[T]{menu},
+		menu:          &Menu[T]{menu: menu},
 		items:         make(map[int]*trayItem[T]),
 		onClick:       func(i int) error { return nil },
 		desk:          desk,
@@ -115,10 +119,10 @@ func (mb *List[T]) OnItemClick(f func(int) error) {
 	mb.onClick = f
 }
 
-func (mb *List[T]) Add(label string, data T) int {
+func (mb *List[T]) Add(data T) int {
 	defer mb.updateValues()
 	newID := int(mb.nextID.Add(1))
-	item := newTrayItem[T](label, data, mb.desk, mb.iconSet)
+	item := newTrayItem[T](data, mb.desk, mb.iconSet)
 
 	mb.menu.Insert(item)
 	mb.items[newID] = item
@@ -153,20 +157,26 @@ func (mb *List[T]) Add(label string, data T) int {
 }
 
 func (mb *List[T]) Remove(i T) error {
-	defer mb.updateValues()
 	var zero T
 	if i == zero {
 		return nil
 	}
+	defer mb.updateValues()
 
 	for id, itm := range mb.items {
 		if itm.Value() == i {
+			if itm.isActive() {
+				return fmt.Errorf("item %d is active", id)
+			}
+
 			delete(mb.items, id)
 			mb.menu.RemoveItem(itm.menuItem)
+
+			return nil
 		}
 	}
 
-	return nil
+	return ErrItemNotFound
 }
 
 func (mb *List[T]) Refresh() {
@@ -174,15 +184,31 @@ func (mb *List[T]) Refresh() {
 }
 
 func (mb *List[T]) Get(id int) T {
-	return mb.items[id].Value()
+	itm := mb.getItem(id)
+	if itm == nil {
+		var zero T
+		return zero
+	}
+
+	return itm.Value()
+}
+
+func (mb *List[T]) getItem(id int) *trayItem[T] {
+	if mb.items[id] == nil {
+		return nil
+	}
+
+	return mb.items[id]
 }
 
 func (mb *List[T]) IsActive(id int) bool {
 	active := mb.getActive()
 	item := mb.items[id]
-	isactive := active == item
+	if active == nil || item == nil {
+		return false
+	}
 
-	return isactive
+	return active == item
 }
 
 func (mb *List[T]) HasActive() bool {
@@ -196,7 +222,12 @@ func (mb *List[T]) HasActive() bool {
 }
 
 func (mb *List[T]) GetActive() T {
-	return mb.getActive().Value()
+	if active := mb.getActive(); active != nil {
+		return active.Value()
+	}
+
+	var zero T
+	return zero
 }
 
 func (mb *List[T]) Show() {
