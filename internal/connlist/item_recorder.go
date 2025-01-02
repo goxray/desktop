@@ -1,3 +1,5 @@
+//go:generate mockgen -destination=mocks/item_recorder_mock.go -source=item_recorder.go -package=mocks -typed
+
 package connlist
 
 import (

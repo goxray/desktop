@@ -8,7 +8,8 @@ import (
 
 // Menu is a simple wrapper for fyne menu, allowing to easily delete and add items.
 type Menu[T value] struct {
-	menu *fyne.Menu
+	menu    *fyne.Menu
+	refresh func() // alternative refresh method
 }
 
 func (m *Menu[T]) Menu() *fyne.Menu {
@@ -37,5 +38,11 @@ func (m *Menu[T]) OnSettingsClick(f func()) {
 }
 
 func (m *Menu[T]) Refresh() {
+	if m.refresh != nil {
+		m.refresh()
+
+		return
+	}
+
 	m.menu.Refresh()
 }
