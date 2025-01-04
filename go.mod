@@ -9,6 +9,8 @@ require (
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264
 	github.com/goxray/tun v0.0.2
 	github.com/lilendian0x00/xray-knife/v2 v2.14.21
+	github.com/stretchr/testify v1.10.0
+	go.uber.org/mock v0.5.0
 )
 
 require (
@@ -50,7 +52,6 @@ require (
 	github.com/jsummers/gobmp v0.0.0-20151104160322-e2ba15ffa76e // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
-	github.com/lilendian0x00/xray-knife v1.6.14-0.20241211194505-363c66ecace3 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.4.0 // indirect
@@ -70,7 +71,6 @@ require (
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e // indirect
 	github.com/vishvananda/netlink v1.3.0 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
@@ -78,7 +78,6 @@ require (
 	github.com/xtls/xray-core v1.8.24 // indirect
 	github.com/yuin/goldmark v1.7.1 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect

@@ -8,8 +8,9 @@ import (
 
 // Menu is a simple wrapper for fyne menu, allowing to easily delete and add items.
 type Menu[T value] struct {
-	menu    *fyne.Menu
-	refresh func() // alternative refresh method
+	menu      *fyne.Menu
+	footerLen int
+	refresh   func() // alternative refresh method
 }
 
 func (m *Menu[T]) Menu() *fyne.Menu {
@@ -17,8 +18,7 @@ func (m *Menu[T]) Menu() *fyne.Menu {
 }
 
 func (m *Menu[T]) Insert(new *trayItem[T]) {
-	const stepsFromBottom = 4 // means quit,separator,settings,separator
-	m.menu.Items = slices.Insert(m.menu.Items, len(m.menu.Items)-stepsFromBottom, new.menuItem)
+	m.menu.Items = slices.Insert(m.menu.Items, len(m.menu.Items)-m.footerLen, new.menuItem)
 }
 
 func (m *Menu[T]) RemoveItem(itm *fyne.MenuItem) {
@@ -34,7 +34,7 @@ func (m *Menu[T]) SetTitle(title string) {
 }
 
 func (m *Menu[T]) OnSettingsClick(f func()) {
-	m.menu.Items[len(m.menu.Items)-1].Action = f
+	m.menu.Items[len(m.menu.Items)-(m.footerLen-1)].Action = f
 }
 
 func (m *Menu[T]) Refresh() {

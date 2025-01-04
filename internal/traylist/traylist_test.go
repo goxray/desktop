@@ -189,11 +189,6 @@ func TestTrayList_Status(t *testing.T) {
 func setupList(desk desktop.App) *List[*mockItem] {
 	list := NewDefault[*mockItem]("title", desk, nil)
 	list.menu.refresh = func() {} // To not initialize fyne windows.
-	// Add default quit button that fyne adds after stratup.
-	list.menu.Menu().Items = append(list.menu.Menu().Items, []*fyne.MenuItem{
-		{IsSeparator: true},
-		{IsQuit: true, Label: "Quit"},
-	}...)
 
 	return list
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"log/slog"
+	"runtime"
 	"runtime/debug"
 
 	"fyne.io/fyne/v2"
@@ -43,12 +44,14 @@ var translations embed.FS
 
 func initialize() {
 	debug.SetGCPercent(10)
+	root.Init()
 	root.PromptRootAccess()
 }
 
 func onstart() {
 	systray.SetTooltip(AppTitleName)
 	dock.HideIconInDock()
+	root.OnStart()
 }
 
 func main() {
@@ -107,6 +110,10 @@ func main() {
 	}()
 
 	settingsLoader.Load(items) // Initialize items from savefile and update windows/tray with new items.
+
+	if runtime.GOOS == "linux" {
+		systray.Register(trayMenu.Refresh, func() {})
+	}
 	a.Run()
 }
 

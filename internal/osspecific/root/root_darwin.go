@@ -19,6 +19,10 @@ func PromptRootAccess() {
 	}
 }
 
+func Init() {}
+
+func OnStart() {}
+
 func runItselfAsRoot() {
 	// Keep theme settings of the user.
 	themeFlag := fmt.Sprintf("-theme_variant=%d", fyne.CurrentApp().Settings().ThemeVariant())
