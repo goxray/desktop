@@ -44,14 +44,12 @@ var translations embed.FS
 
 func initialize() {
 	debug.SetGCPercent(10)
-	root.Init()
 	root.PromptRootAccess()
 }
 
 func onstart() {
 	systray.SetTooltip(AppTitleName)
 	dock.HideIconInDock()
-	root.OnStart()
 }
 
 func main() {
