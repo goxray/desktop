@@ -16,6 +16,7 @@ import (
 var assetsFS embed.FS
 
 // Credits: https://www.svgrepo.com/collection/wolf-kit-solid-glyph-icons/3
+// Logo: https://www.svgrepo.com/svg/352612/umbrella
 // License: https://www.svgrepo.com/page/licensing/#CC%20Attribution
 //
 // All icons were modified, the color and some properties of SVG files were altered.
@@ -35,6 +36,7 @@ func init() {
 	if runtime.GOOS != "darwin" {
 		LogoPassive = PrepareResource("icon_default.png")
 		LogoActive = PrepareResource("icon_active.png")
+		LinkProgress = PrepareResource("loading.png")
 		Warning = PrepareResource("warn.png")
 	}
 
