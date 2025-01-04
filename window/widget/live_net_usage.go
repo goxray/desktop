@@ -11,7 +11,7 @@ import (
 	"fyne.io/fyne/v2/lang"
 	"fyne.io/fyne/v2/theme"
 
-	customtheme "github.com/goxray/ui/theme"
+	customtheme "github.com/goxray/desktop/theme"
 )
 
 type NetStats interface {

@@ -1,4 +1,4 @@
-module github.com/goxray/ui
+module github.com/goxray/desktop
 
 go 1.23.3
 

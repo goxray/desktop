@@ -12,7 +12,7 @@ import (
 	vpn "github.com/goxray/tun/pkg/client"
 	"github.com/lilendian0x00/xray-knife/v2/xray"
 
-	"github.com/goxray/ui/internal/netchart"
+	"github.com/goxray/desktop/internal/netchart"
 )
 
 type Client interface {

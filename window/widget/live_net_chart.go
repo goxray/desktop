@@ -9,8 +9,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/theme"
 
-	"github.com/goxray/ui/internal/netchart"
-	customtheme "github.com/goxray/ui/theme"
+	"github.com/goxray/desktop/internal/netchart"
+	customtheme "github.com/goxray/desktop/theme"
 )
 
 type Recorder interface {

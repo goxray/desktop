@@ -16,13 +16,13 @@ import (
 	"fyne.io/systray"
 	"github.com/lilendian0x00/xray-knife/v2/xray"
 
-	"github.com/goxray/ui/icon"
-	"github.com/goxray/ui/internal/connlist"
-	"github.com/goxray/ui/internal/osspecific/dock"
-	"github.com/goxray/ui/internal/osspecific/root"
-	"github.com/goxray/ui/internal/traylist"
-	"github.com/goxray/ui/theme"
-	"github.com/goxray/ui/window"
+	"github.com/goxray/desktop/icon"
+	"github.com/goxray/desktop/internal/connlist"
+	"github.com/goxray/desktop/internal/osspecific/dock"
+	"github.com/goxray/desktop/internal/osspecific/root"
+	"github.com/goxray/desktop/internal/traylist"
+	"github.com/goxray/desktop/theme"
+	"github.com/goxray/desktop/window"
 )
 
 const (

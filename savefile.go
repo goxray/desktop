@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 
-	"github.com/goxray/ui/internal/connlist"
+	"github.com/goxray/desktop/internal/connlist"
 )
 
 const (
