@@ -16,7 +16,7 @@ import (
 var assetsFS embed.FS
 
 // Credits: https://www.svgrepo.com/collection/wolf-kit-solid-glyph-icons/3
-// Logo: https://www.svgrepo.com/svg/352612/umbrella
+// Logo: https://www.svgrepo.com/svg/10943/umbrella
 // License: https://www.svgrepo.com/page/licensing/#CC%20Attribution
 //
 // All icons were modified, the color and some properties of SVG files were altered.
