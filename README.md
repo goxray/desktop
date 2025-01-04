@@ -47,11 +47,10 @@ Don't forget to add the app to your `Applications` and `Open at Login` items!
 
 #### Linux
 
-There are some limitations on running GUI apps with elevated privileges on newer Linux distros. To run it on Ubuntu you should set some privileges and run it with the `sudo -E` prefix:
+You can package and install the app like a normal Linux fyne application (and use it as a normal desktop application). After installing add additional privileges to the executable. See `scripts` directory for examples and additional info:
 
 ```bash
-chmod u+s ./goxray
-sudo -E ./goxray
+sudo setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip goxray_binary_path
 ```
 
 ### 🛠️ Building the project
