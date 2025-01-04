@@ -15,10 +15,10 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/goxray/ui/icon"
-	customtheme "github.com/goxray/ui/theme"
-	"github.com/goxray/ui/window/form"
-	customwidget "github.com/goxray/ui/window/widget"
+	"github.com/goxray/desktop/icon"
+	customtheme "github.com/goxray/desktop/theme"
+	"github.com/goxray/desktop/window/form"
+	customwidget "github.com/goxray/desktop/window/widget"
 )
 
 type Settings[T ListItem] struct {

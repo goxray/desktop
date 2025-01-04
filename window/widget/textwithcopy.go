@@ -7,7 +7,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	customtheme "github.com/goxray/ui/theme"
+	customtheme "github.com/goxray/desktop/theme"
 )
 
 type hoverable struct {

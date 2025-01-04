@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	"github.com/goxray/ui/internal/connlist/mocks"
+	"github.com/goxray/desktop/internal/connlist/mocks"
 )
 
 const sampleVlessLink = "vless://h1px412i-9138-s9m5-9b86-d47d74dd8541@127.0.0.1:8080?type=tcp&security=reality&pbk=4442383675fc0fb574c3e50abbe7d4c5&fp=chrome&sni=yahoo.com&sid=0c&spx=%2F&flow=xtls-rprx-vision#Myremark"

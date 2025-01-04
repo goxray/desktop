@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	"github.com/goxray/ui/internal/netchart/mocks"
+	"github.com/goxray/desktop/internal/netchart/mocks"
 )
 
 func TestRecorder_NilSource(t *testing.T) {
