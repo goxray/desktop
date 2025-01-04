@@ -56,6 +56,7 @@ type List[T value] struct {
 	onClick func(int) error
 
 	itemsStartIDx int
+	footerLen     int
 	desk          desktop.App
 	iconSet       IconSet
 }
@@ -73,6 +74,7 @@ func NewDefault[T value](title string, desk desktop.App, icons *IconSet) *List[T
 		{Label: title, Disabled: true},
 		fyne.NewMenuItemSeparator(),
 	}
+	// New items will be placed in between.
 	footer := []*fyne.MenuItem{
 		fyne.NewMenuItemSeparator(),
 		{
@@ -80,17 +82,19 @@ func NewDefault[T value](title string, desk desktop.App, icons *IconSet) *List[T
 			Icon:   icons.Settings,
 			Action: func() {},
 		},
+		fyne.NewMenuItemSeparator(),
+		{
+			Label:  lang.L("Quit"),
+			IsQuit: true,
+		},
 	}
 
-	mb := &fyne.Menu{
-		Label: title,
-		Items: append(header, footer...),
-	}
+	mb := fyne.NewMenu(title, append(header, footer...)...)
 
-	return New[T](desk, mb, len(header), icons)
+	return New[T](desk, mb, len(header), len(footer), icons)
 }
 
-func New[T value](desk desktop.App, menu *fyne.Menu, insertIDx int, icons *IconSet) *List[T] {
+func New[T value](desk desktop.App, menu *fyne.Menu, insertIDx int, footerLen int, icons *IconSet) *List[T] {
 	if icons == nil {
 		icons = defaultIconSet()
 	}
@@ -100,11 +104,12 @@ func New[T value](desk desktop.App, menu *fyne.Menu, insertIDx int, icons *IconS
 	}
 
 	menuBar := &List[T]{
-		menu:          &Menu[T]{menu: menu},
+		menu:          &Menu[T]{menu: menu, footerLen: footerLen},
 		items:         make(map[int]*trayItem[T]),
 		onClick:       func(i int) error { return nil },
 		desk:          desk,
 		itemsStartIDx: insertIDx + 1,
+		footerLen:     footerLen,
 		iconSet:       *icons,
 	}
 
