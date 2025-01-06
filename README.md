@@ -41,7 +41,7 @@ Please visit https://xtls.github.io/en for more info.
 > You can easily set the application to start at login.
 > Go to `System Settings` > `General` > `Login Items & Extensions` > `Open at Login`, then press `+` and browse for GoXRay.app
 
-Get the latest release app bundle from [Releases](https://github.com/goxray/desktop/releases) and... just run it.
+Get the latest release app bundle from [Releases](https://github.com/goxray/desktop/releases) and... just run it. If you get "damaged" error then run this command `xattr -c "GoXRay.app"`, apple marks externaly downloaded files, this command removes this mark.
 You will be prompted for admin password, and your GoXRay VPN is ready.
 Don't forget to add the app to your `Applications` and `Open at Login` items!
 
