@@ -42,16 +42,19 @@ Please visit https://xtls.github.io/en for more info.
 > Go to `System Settings` > `General` > `Login Items & Extensions` > `Open at Login`, then press `+` and browse for GoXRay.app
 
 Get the latest release app bundle from [Releases](https://github.com/goxray/desktop/releases) and... just run it.
-You will be prompted for privileged access, and your GoXRay VPN is ready.
+You will be prompted for admin password, and your GoXRay VPN is ready.
 Don't forget to add the app to your `Applications` and `Open at Login` items!
 
 #### Linux
 
-You can package and install the app like a normal Linux fyne application (and use it as a normal desktop application). After installing add additional privileges to the executable. See `scripts` directory for examples and additional info:
+> [!IMPORTANT]
+> After installing the application, don't forget to set networking privileges to the installed binary (see `scripts` directory for more info):
+> ```bash
+> sudo setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip goxray_binary_path
+> ```
 
-```bash
-sudo setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip goxray_binary_path
-```
+Get the latest release from [Releases](https://github.com/goxray/desktop/releases).
+After unpacking the archive - you can install the app using `make user-install` or run the binary in `usr/local/bin` folder.
 
 ### 🛠️ Building the project
 
@@ -72,6 +75,9 @@ If you want to get the macOS application bundle (.app structured file), you can 
 # go install fyne.io/fyne/v2/cmd/fyne@latest
 fyne package -os darwin # Check out the newly created GoXRay.app file
 ```
+
+> [!TIP]
+> For headache-free cross-compilation please see https://github.com/fyne-io/fyne-cross.
 
 ### 📋 TODO
 - [ ] Add logs tab with all std logs and export button
