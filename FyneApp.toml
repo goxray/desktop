@@ -1,11 +1,9 @@
-Website = "https://github.com/goxray"
-
 [Details]
   Icon = "icon/assets/app.png"
   Name = "GoXRay"
   ID = "com.github.goxray.client.app"
   Version = "0.0.1"
-  Build = 51
+  Build = 56
 
 [LinuxAndBSD]
   GenericName = "VPN Client"
