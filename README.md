@@ -31,7 +31,7 @@ Please visit https://xtls.github.io/en for more info.
 - Responsive, lightweight and dynamic UI, focusing on tray menu for quick and easy interactions
 - Only soft routing rules are applied, no changes made to default routes
 
-## ⚡️ Usage
+## ⚡️ Installation
 
 ### 🌐 VPN Client
 
