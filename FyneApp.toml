@@ -3,7 +3,7 @@
   Name = "GoXRay"
   ID = "com.github.goxray.client.app"
   Version = "0.0.1"
-  Build = 56
+  Build = 57
 
 [LinuxAndBSD]
   GenericName = "VPN Client"

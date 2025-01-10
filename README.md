@@ -79,11 +79,7 @@ fyne package -os darwin # Check out the newly created GoXRay.app file
 > [!TIP]
 > For headache-free cross-compilation please see https://github.com/fyne-io/fyne-cross.
 
-### 📋 TODO
-- [ ] Add logs tab with all std logs and export button
-- [ ] Add rearranging items functionality
-
-### Credits
+### 📋 Credits
 
 - https://github.com/xtls/xray-core
 - https://github.com/fyne-io/fyne

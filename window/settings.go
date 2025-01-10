@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/lang"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
@@ -23,11 +24,12 @@ import (
 
 type Settings[T ListItem] struct {
 	window fyne.Window
-	list   binding.DataList
+	list   binding.ExternalUntypedList
 
 	onAdd    func(data FormData) error
 	onUpdate func(FormData, T) error
 	onDelete func(T) error
+	onSwap   func(T, T) error
 
 	ctx       context.Context
 	ctxCancel context.CancelFunc
@@ -35,10 +37,11 @@ type Settings[T ListItem] struct {
 
 func NewSettings[T ListItem](
 	a fyne.App,
-	list binding.DataList,
+	list binding.ExternalUntypedList,
 	onAdd func(data FormData) error,
 	onUpdate func(FormData, T) error,
 	onDelete func(T) error,
+	onSwap func(T, T) error,
 ) *Settings[T] {
 	w := a.NewWindow(lang.L("Settings"))
 	w.CenterOnScreen()
@@ -52,6 +55,7 @@ func NewSettings[T ListItem](
 		onAdd:     onAdd,
 		onUpdate:  onUpdate,
 		onDelete:  onDelete,
+		onSwap:    onSwap,
 		list:      list,
 		ctx:       ctx,
 		ctxCancel: cancel,
@@ -163,6 +167,22 @@ func (w *Settings[T]) createAddForm() *fyne.Container {
 	)
 }
 
+type HoverList struct {
+	fyne.CanvasObject
+	onMouseIn  func()
+	onMouseOut func()
+}
+
+func (h *HoverList) MouseIn(*desktop.MouseEvent) {
+	h.onMouseIn()
+}
+
+func (h *HoverList) MouseOut() {
+	h.onMouseOut()
+}
+
+func (h *HoverList) MouseMoved(*desktop.MouseEvent) {}
+
 func (w *Settings[T]) createDynamicList() *fyne.Container {
 	updateForm := form.NewUpdateConfig(lang.L("Update"), lang.L("Delete"))
 	configInfoText := customwidget.NewTextWithCopy(w.window.Clipboard())
@@ -179,11 +199,20 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 	list := widget.NewListWithData(w.list, nil, nil)
 	list.HideSeparators = true
 
+	var selectedItem widget.ListItemID = -1
 	// Small caches to reuse sensitive widgets.
 	activeCharts := map[widget.ListItemID]*fyne.Container{}       // Cache for active live charts
 	renderedBadges := map[widget.ListItemID][]fyne.CanvasObject{} // Cache for badges
 	activeNetStats := map[widget.ListItemID]*fyne.Container{}     // Cache for net stats counters
-	var selectedItem widget.ListItemID = -1
+	swapItems := func(id1, id2 int) {
+		list.UnselectAll()
+		defer list.Refresh()
+		_ = w.onSwap(getListItem(w.list, id2).(T), getListItem(w.list, id1).(T))
+
+		activeCharts[id1], activeCharts[id2] = activeCharts[id2], activeCharts[id1]
+		activeNetStats[id1], activeNetStats[id2] = activeNetStats[id2], activeNetStats[id1]
+		renderedBadges[id1], renderedBadges[id2] = renderedBadges[id2], renderedBadges[id1]
+	}
 
 	list.CreateItem = func() fyne.CanvasObject {
 		dataStats := container.NewHBox(
@@ -191,19 +220,47 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 			container.NewPadded(canvas.NewText("↓... "+lang.L("GB"), theme.Color(customtheme.ColorNameTextMuted))),
 		)
 
+		pad := layout.NewCustomPaddedLayout(theme.Padding(), theme.Padding(), 0, 0)
+		moveButtons := container.NewHBox(
+			container.New(pad, widget.NewButtonWithIcon("", theme.MoveUpIcon(), func() {})),
+			container.New(pad, widget.NewButtonWithIcon("", theme.MoveDownIcon(), func() {})),
+		)
+		moveButtons.Hide()
+		hv := &HoverList{
+			CanvasObject: container.NewStack(),
+			onMouseIn:    moveButtons.Show,
+			onMouseOut:   moveButtons.Hide,
+		}
+
 		connName := container.New(layout.NewCustomPaddedLayout(-theme.Padding()*1.5, 0, 0, 0), widget.NewLabel("template"))
 		connTags := container.New(layout.NewCustomPaddedLayout(-theme.Padding()*4, theme.Padding()*6.5, 0, 0), container.NewHBox())
-		return container.NewBorder(nil, nil,
+		return container.NewStack(container.NewBorder(nil, nil,
 			container.NewPadded(widget.NewIcon(nil)),
-			dataStats, container.New(layout.NewCustomPaddedVBoxLayout(theme.Padding()*1.5), connName, connTags),
-		)
+			container.NewHBox(moveButtons, dataStats), container.New(layout.NewCustomPaddedVBoxLayout(theme.Padding()*1.5), connName, connTags),
+		), hv)
 	}
 	list.UpdateItem = func(id widget.ListItemID, o fyne.CanvasObject) {
 		defer itemSettings.Refresh()
-		activeIcon := o.(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Icon)
-		label := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label)
-		badges := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*fyne.Container)
-		netStats := o.(*fyne.Container).Objects[2].(*fyne.Container)
+		activeIcon := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Icon)
+		label := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Label)
+		badges := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*fyne.Container)
+		netStats := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[2].(*fyne.Container).Objects[1].(*fyne.Container)
+		moveUpBtn := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[2].(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*fyne.Container).Objects[0].(*widget.Button)
+		moveDownBtn := o.(*fyne.Container).Objects[0].(*fyne.Container).Objects[2].(*fyne.Container).Objects[0].(*fyne.Container).Objects[1].(*fyne.Container).Objects[0].(*widget.Button)
+
+		switch id {
+		case 0:
+			moveUpBtn.Disable()
+		case list.Length() - 1:
+			moveDownBtn.Disable()
+		}
+
+		moveUpBtn.OnTapped = func() {
+			swapItems(id, id-1)
+		}
+		moveDownBtn.OnTapped = func() {
+			swapItems(id, id+1)
+		}
 
 		val := getListItem(w.list, id)
 
@@ -220,8 +277,9 @@ func (w *Settings[T]) createDynamicList() *fyne.Container {
 
 		if _, ok := activeNetStats[id]; !ok {
 			activeNetStats[id] = customwidget.NewLiveNetworkStats(w.ctx, val)
-			netStats.Objects = activeNetStats[id].Objects
 		}
+
+		netStats.Objects = activeNetStats[id].Objects
 
 		if _, ok := activeCharts[id]; !ok {
 			activeCharts[id] = customwidget.NewLiveNetworkChart(w.ctx, " ● "+lang.L("upload"), "● "+lang.L("download"),
