@@ -1,12 +1,17 @@
 package connlist
 
+import (
+	"errors"
+)
+
 // Collection represents a collection of items.
 // Is used to easily pass events and update the UI state in one place (on{*} methods).
 type Collection struct {
 	items []*Item
 
-	onAdd    func(item *Item)
-	onDelete func(item *Item)
+	onAdd    func(*Item)
+	onDelete func(*Item)
+	onSwap   func(*Item, *Item)
 	onChange func()
 }
 
@@ -31,6 +36,13 @@ func (l *Collection) AllUntyped() *[]any {
 func (l *Collection) OnAdd(onAdd func(item *Item)) {
 	l.onAdd = func(i *Item) {
 		onAdd(i)
+		l.onChange()
+	}
+}
+
+func (l *Collection) OnSwap(onSwap func(*Item, *Item)) {
+	l.onSwap = func(i1 *Item, i2 *Item) {
+		onSwap(i1, i2)
 		l.onChange()
 	}
 }
@@ -75,6 +87,26 @@ func (l *Collection) RemoveItem(del *Item) {
 			l.remove(i)
 		}
 	}
+}
+
+func (l *Collection) SwapItems(itm1 *Item, itm2 *Item) error {
+	id1, id2 := -1, -1
+	for i, item := range l.items {
+		if item == itm1 {
+			id1 = i
+		}
+		if item == itm2 {
+			id2 = i
+		}
+	}
+	if id1 == -1 || id2 == -1 {
+		return errors.New("cannot swap items")
+	}
+
+	l.items[id1], l.items[id2] = l.items[id2], l.items[id1]
+	l.onSwap(itm1, itm2)
+
+	return nil
 }
 
 func (l *Collection) remove(i int) {

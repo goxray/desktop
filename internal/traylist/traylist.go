@@ -133,11 +133,21 @@ func (mb *List[T]) Add(data T) int {
 	mb.items[newID] = item
 
 	item.menuItem.Action = func() {
+		curID := -1
+		for k, v := range mb.items {
+			if v == item {
+				curID = k
+			}
+		}
+		if curID == -1 {
+			return
+		}
+
 		mb.disableAll(true)
 		defer mb.disableAll(false)
 		item.setInProgress()
 
-		if err := mb.onClick(newID); err != nil {
+		if err := mb.onClick(curID); err != nil {
 			defer item.setWarning()
 			mb.setLabel(err.Error())
 
@@ -150,7 +160,7 @@ func (mb *List[T]) Add(data T) int {
 
 		// Render all active items as not active except ours
 		for id, itm := range mb.items {
-			if newID != id && itm.isActive() {
+			if curID != id && itm.isActive() {
 				itm.setActive(false)
 			}
 		}
@@ -182,6 +192,33 @@ func (mb *List[T]) Remove(i T) error {
 	}
 
 	return ErrItemNotFound
+}
+
+func (mb *List[T]) Swap(i1, i2 T) error {
+	var zero T
+	if i1 == zero || i2 == zero {
+		return nil
+	}
+	defer mb.Refresh()
+
+	id1, id2 := -1, -1
+	for id, itm := range mb.items {
+		if itm.Value() != i1 && itm.Value() != i2 {
+			continue
+		}
+
+		if itm.Value() == i1 {
+			id1 = id
+		}
+		if itm.Value() == i2 {
+			id2 = id
+		}
+	}
+
+	mb.menu.Swap(mb.items[id2].menuItem, mb.items[id1].menuItem)
+	mb.items[id1], mb.items[id2] = mb.items[id2], mb.items[id1]
+
+	return nil
 }
 
 func (mb *List[T]) Refresh() {

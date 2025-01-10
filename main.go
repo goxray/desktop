@@ -70,7 +70,7 @@ func main() {
 	var settingsWindow *window.Settings[*connlist.Item]
 	trayMenu.OnSettingsClick(func() {
 		if settingsWindow == nil {
-			settingsWindow = window.NewSettings[*connlist.Item](a, list, AddFormH(items), UpdateFormH(), DeleteItemH(items))
+			settingsWindow = window.NewSettings(a, list, AddFormH(items), UpdateFormH(), DeleteItemH(items), SwapItemH(items))
 			settingsWindow.OnClosed(func() { settingsWindow = nil })
 		}
 		settingsWindow.Show()
@@ -87,6 +87,12 @@ func main() {
 	})
 	items.OnDelete(func(item *connlist.Item) {
 		err := errors.Join(trayMenu.Remove(item), list.Remove(item))
+		if err != nil {
+			slog.Error(err.Error())
+		}
+	})
+	items.OnSwap(func(item1 *connlist.Item, item2 *connlist.Item) {
+		err := errors.Join(trayMenu.Swap(item1, item2), swapItems(list, item1, item2))
 		if err != nil {
 			slog.Error(err.Error())
 		}
@@ -120,6 +126,12 @@ func DeleteItemH(list *connlist.Collection) func(itm *connlist.Item) error {
 		list.RemoveItem(itm)
 
 		return nil
+	}
+}
+
+func SwapItemH(list *connlist.Collection) func(*connlist.Item, *connlist.Item) error {
+	return func(item *connlist.Item, item2 *connlist.Item) error {
+		return list.SwapItems(item, item2)
 	}
 }
 
@@ -161,6 +173,25 @@ func ConnectHandler(trayItems *traylist.List[*connlist.Item]) func(id int) error
 
 		return trayItems.Get(id).Connect()
 	}
+}
+
+func swapItems(list binding.ExternalUntypedList, item1 *connlist.Item, item2 *connlist.Item) error {
+	listVals, _ := list.Get()
+	id1, id2 := -1, -1
+	for i, l := range listVals {
+		if l == item1 {
+			id1 = i
+		}
+		if l == item2 {
+			id2 = i
+		}
+	}
+
+	if id1 == -1 || id2 == -1 {
+		return errors.New("item1 or item2 does not exist")
+	}
+
+	return errors.Join(list.SetValue(id1, item2), list.SetValue(id2, item1))
 }
 
 func toDesktopApp(a fyne.App) desktop.App {

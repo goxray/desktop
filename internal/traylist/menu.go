@@ -29,6 +29,24 @@ func (m *Menu[T]) RemoveItem(itm *fyne.MenuItem) {
 	}
 }
 
+func (m *Menu[T]) Swap(i1 *fyne.MenuItem, i2 *fyne.MenuItem) {
+	id1, id2 := -1, -1
+	for i, it := range m.menu.Items {
+		if it == i1 {
+			id1 = i
+		}
+		if it == i2 {
+			id2 = i
+		}
+	}
+	if id1 == -1 || id2 == -1 {
+		return
+	}
+
+	m.menu.Items[id1], m.menu.Items[id2] = m.menu.Items[id2], m.menu.Items[id1]
+	m.Refresh()
+}
+
 func (m *Menu[T]) SetTitle(title string) {
 	m.menu.Items[0].Label = title
 }
