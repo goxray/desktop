@@ -8,6 +8,8 @@ This project brings fully functional [XRay](https://github.com/XTLS/Xray-core) d
 > [!NOTE]
 > The program will not damage your routing rules, default route is intact and only additional rules are added for the lifetime of application's TUN device. There are also additional complementary clean up procedures in place.
 
+> For CLI version see https://github.com/goxray/tun
+
 | macOS (15.1) Light  | Linux (Ubuntu) Dark |
 | ------------- | ------------- |
 | <img alt="" src=".github/images/overview_screenshot.png"> | <img alt="" src=".github/images/overview_screenshot_linux.jpg">  |
