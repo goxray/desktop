@@ -1,4 +1,4 @@
-# <img width="25px" src="icon/assets/app.png" alt="app logo"> GoXRay: Desktop VPN client for XRay
+# <img width="25px" src="icon/assets/app.png" alt="app logo"> GoXRay: Desktop VPN client for XRay [![Static Badge](https://img.shields.io/badge/featured_on_apps.fyne.io-00ADD8?style=flat&logo=graphite&logoColor=lightblue&color=blue&link=https%3A%2F%2Fapps.fyne.io%2Fapps%2Fcom.github.goxray.client.app.html)](https://apps.fyne.io/apps/com.github.goxray.client.app.html)
 ![Static Badge](https://img.shields.io/badge/OS-macOS%20%7C%20Linux-blue?style=flat&logo=linux&logoColor=white&logoSize=auto&color=blue)
 ![Static Badge](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go&logoColor=white)
 [![Go Report Card](https://goreportcard.com/badge/github.com/goxray/desktop)](https://goreportcard.com/report/github.com/goxray/desktop)
@@ -8,7 +8,7 @@ This project brings fully functional [XRay](https://github.com/XTLS/Xray-core) d
 > [!NOTE]
 > The program will not damage your routing rules, default route is intact and only additional rules are added for the lifetime of application's TUN device. There are also additional complementary clean up procedures in place.
 
-> For CLI version see https://github.com/goxray/tun
+> For CLI version see https://github.com/goxray/tun.
 
 | macOS (15.1) Light  | Linux (Ubuntu) Dark |
 | ------------- | ------------- |
@@ -51,14 +51,14 @@ Don't forget to add the app to your `Applications` and `Open at Login` items!
 
 #### Linux
 
+Get the latest release from [Releases](https://github.com/goxray/desktop/releases).
+After unpacking the archive - you can install the app using `make user-install` or run the binary in `usr/local/bin` folder.
+
 > [!IMPORTANT]
 > After installing the application, don't forget to set networking privileges to the installed binary (see `scripts` directory for more info):
 > ```bash
 > sudo setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip goxray_binary_path
 > ```
-
-Get the latest release from [Releases](https://github.com/goxray/desktop/releases).
-After unpacking the archive - you can install the app using `make user-install` or run the binary in `usr/local/bin` folder.
 
 ### 🛠️ Building the project
 
