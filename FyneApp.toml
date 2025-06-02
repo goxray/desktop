@@ -2,5 +2,5 @@
   Icon = "icon/assets/app.png"
   Name = "GoXRay"
   ID = "com.github.goxray.client.app"
-  Version = "0.0.4"
-  Build = 98
+  Version = "0.0.5"
+  Build = 106
