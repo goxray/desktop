@@ -7,7 +7,7 @@ require (
 	fyne.io/systray v1.11.0
 	github.com/ajstarks/fc v0.0.0-20240825205253-42aeab80ccce
 	github.com/getlantern/elevate v0.0.0-20220903142053-479ab992b264
-	github.com/goxray/tun v0.0.5
+	github.com/goxray/tun v0.0.6
 	github.com/lilendian0x00/xray-knife/v2 v2.14.21
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/mock v0.5.2
