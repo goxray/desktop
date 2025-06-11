@@ -2,6 +2,9 @@
 ![Static Badge](https://img.shields.io/badge/OS-macOS%20%7C%20Linux-blue?style=flat&logo=linux&logoColor=white&logoSize=auto&color=blue)
 ![Static Badge](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go&logoColor=white)
 [![Go Report Card](https://goreportcard.com/badge/github.com/goxray/desktop)](https://goreportcard.com/report/github.com/goxray/desktop)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/goxray/desktop/total?color=blue)
+
+
 
 This project brings fully functional [XRay](https://github.com/XTLS/Xray-core) desktop client for macOS and Linux, powered by [fyne](https://github.com/fyne-io/fyne) and written in Go.
 
