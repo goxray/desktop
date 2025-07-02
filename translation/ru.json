@@ -22,7 +22,6 @@
   "TLS": "TLS",
   "Protocol": "Протокол",
   "Port": "Порт",
-  "ID": "ID",
   "Remark": "Ремарка",
   "TlsFingerprint": "TlsFingerprint",
   "SNI":  "SNI",
