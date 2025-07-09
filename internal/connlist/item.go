@@ -10,7 +10,8 @@ import (
 	"strings"
 
 	vpn "github.com/goxray/tun/pkg/client"
-	"github.com/lilendian0x00/xray-knife/v2/xray"
+	xrayproto "github.com/lilendian0x00/xray-knife/v3/pkg/protocol"
+	xray3 "github.com/lilendian0x00/xray-knife/v3/pkg/xray"
 
 	"github.com/goxray/desktop/internal/netchart"
 )
@@ -49,8 +50,11 @@ func newItem(label, link string, parent *Collection) (*Item, error) {
 }
 
 func (c *Item) init() error {
-	proto, err := xray.ParseXrayConfig(c.Link())
+	proto, err := (&xray3.Core{}).CreateProtocol(c.Link())
 	if err != nil {
+		return fmt.Errorf("invalid xray link: %s", err)
+	}
+	if err := proto.Parse(); err != nil {
 		return fmt.Errorf("invalid xray link: %s", err)
 	}
 
@@ -112,8 +116,9 @@ func (c *Item) XRayConfig() map[string]string {
 	return c.xconfigMap
 }
 
-func (c *Item) xrayBaseConfigToMap(proto xray.Protocol) (map[string]string, error) {
+func (c *Item) xrayBaseConfigToMap(proto xrayproto.Protocol) (map[string]string, error) {
 	x := proto.ConvertToGeneralConfig()
+	fmt.Printf("xrayBaseConfigToMap: %+v\n", x)
 	xmap := map[string]string{
 		"Protocol": x.Protocol, "Address": x.Address,
 		"Security": x.Security, "Aid": x.Aid, "Host": x.Host,

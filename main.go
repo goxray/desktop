@@ -4,6 +4,7 @@ import (
 	"embed"
 	"errors"
 	"flag"
+	"fmt"
 	"log/slog"
 	"runtime"
 	"runtime/debug"
@@ -14,7 +15,6 @@ import (
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/lang"
 	"fyne.io/systray"
-	"github.com/lilendian0x00/xray-knife/v2/xray"
 
 	"github.com/goxray/desktop/icon"
 	"github.com/goxray/desktop/internal/connlist"
@@ -23,6 +23,8 @@ import (
 	"github.com/goxray/desktop/internal/traylist"
 	"github.com/goxray/desktop/theme"
 	"github.com/goxray/desktop/window"
+
+	"github.com/lilendian0x00/xray-knife/v3/pkg/xray"
 )
 
 const (
@@ -143,9 +145,12 @@ func UpdateFormH() func(data window.FormData, itm *connlist.Item) error {
 
 func AddFormH(list *connlist.Collection) func(data window.FormData) error {
 	return func(new window.FormData) error {
-		proto, err := xray.ParseXrayConfig(new.Link)
+		proto, err := (&xray.Core{}).CreateProtocol(new.Link)
 		if err != nil {
-			return err
+			return fmt.Errorf("create xray protocol: %s", err)
+		}
+		if err := proto.Parse(); err != nil {
+			return fmt.Errorf("parse xray protocol: %s", err)
 		}
 
 		if len(proto.ConvertToGeneralConfig().Remark) > 32 {
