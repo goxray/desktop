@@ -24,12 +24,6 @@ Please visit https://xtls.github.io/en for more info.
 - macOS (tested on Sequoia 15.1.1 M3)
 - Linux (tested on Ubuntu 24.10 ARM)
 
-> [!WARNING]
-> Although the Linux version is tested, safe to use, and works as expected, it is not considered stable yet. There might be some GUI related issues (like tray menu updating delays).
-> Please let me know if you have any troubles with the Linux version. If you encounter privileges issues make sure to check [#Linux](#linux) info below.
->
-> Feel free to test this on your system and let me know in the issues :)
-
 ## ✨ Features
 - Stupidly easy to use
 - Adding and editing XRay URL configurations
