@@ -69,7 +69,7 @@ sudo apt update
 sudo apt install goxray-gui
 ```
 
-After the installation, the package might be updated automatically as it is done in Ubuntu. All the packages in this PPA are cryptographically signed by @twdragon.
+After the installation, the package might be updated automatically as it is done in Ubuntu. All the packages in this PPA are cryptographically signed by @twdragon. The PPA is also available on Ubuntu Launchpad: https://launchpad.net/~twdragon/+archive/ubuntu/xray
 
 The experimental unsigned artifact packages of the program could be also found in the Github Action Artifacts section of the [pipeline repository](https://github.com/twdragon/xray-debian-pkg/actions).
 
