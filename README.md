@@ -59,9 +59,9 @@ After unpacking the archive - you can install the app using `make user-install` 
 > sudo setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip goxray_binary_path
 > ```
 
-##### Ubuntu PPA
+##### 📦 Using [twdragon](https://github.com/twdragon) debian package
 
-The Ubuntu PPA version is based on the tagged release of this project and named `goxray-gui`. It is automatically built by Ubuntu build pipeline from the packaged sources. The preparation and version control pipelines for source preparation live in the [dedicated repository](https://github.com/twdragon/xray-debian-pkg). To install the client program from the PPA, issue the following commands:
+The client is available from the PPA repository `ppa:twdragon/xray`, maintained by [twdragon](https://github.com/twdragon). The package is in sync with this repo releases. You can check the pipeline at the [dedicated repository](https://github.com/twdragon/xray-debian-pkg). To install use:
 
 ```bash
 sudo add-apt-repository ppa:twdragon/xray
