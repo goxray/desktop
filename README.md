@@ -24,7 +24,7 @@ Please visit https://xtls.github.io/en for more info.
 - macOS (tested on Sequoia 15.1.1 M3)
 - Linux:
     - Ubuntu 24.10 ARM
-    - Mint Linux 22 amd64
+    - Mint 22 amd64
 
 ## ✨ Features
 - Stupidly easy to use
