@@ -22,7 +22,9 @@ Please visit https://xtls.github.io/en for more info.
 
 #### Tested and supported on:
 - macOS (tested on Sequoia 15.1.1 M3)
-- Linux (tested on Ubuntu 24.10 ARM)
+- Linux:
+    - Ubuntu 24.10 ARM
+    - Mint Linux 22 amd64
 
 ## ✨ Features
 - Stupidly easy to use
@@ -57,7 +59,21 @@ After unpacking the archive - you can install the app using `make user-install` 
 > sudo setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip goxray_binary_path
 > ```
 
-### 🛠️ Building the project
+##### Ubuntu PPA
+
+The Ubuntu PPA version is based on the tagged release of this project and named `goxray-gui`. It is automatically built by Ubuntu build pipeline from the packaged sources. The preparation and version control pipelines for source preparation live in the [dedicated repository](https://github.com/twdragon/xray-debian-pkg). To install the client program from the PPA, issue the following commands:
+
+```bash
+sudo add-apt-repository ppa:twdragon/xray
+sudo apt update
+sudo apt install goxray-gui
+```
+
+After the installation, the package might be updated automatically as it is done in Ubuntu. All the packages in this PPA are cryptographically signed by @twdragon.
+
+The experimental unsigned artifact packages of the program could be also found in the Github Action Artifacts section of the [pipeline repository](https://github.com/twdragon/xray-debian-pkg/actions).
+
+### 🛠️ Building from source
 
 > [!IMPORTANT]
 > - `sudo` is required, the application will prompt you for privileged access when you run it.
