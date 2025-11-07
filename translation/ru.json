@@ -33,5 +33,7 @@
   "ALPN": "ALPN",
   "Authority": "Authority",
   "ServiceName": "Имя сервиса",
-  "Mode": "Режим"
+  "Mode": "Режим",
+
+  "Quit": "Выход"
 }
