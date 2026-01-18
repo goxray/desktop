@@ -153,10 +153,6 @@ func AddFormH(list *connlist.Collection) func(data window.FormData) error {
 			return fmt.Errorf("parse xray protocol: %s", err)
 		}
 
-		if len(proto.ConvertToGeneralConfig().Remark) > 32 {
-			return errors.New("remark value is too long")
-		}
-
 		return list.AddItem(new.Label, new.Link)
 	}
 }
