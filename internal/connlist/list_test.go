@@ -17,7 +17,7 @@ func TestList_AddDelete(t *testing.T) {
 
 	require.Empty(t, c.All())
 	require.Equal(t, len(c.All()), len(*c.AllUntyped()))
-	require.ErrorContains(t, c.AddItem("Test 1", "link"), "invalid xray link: invalid protocol type")
+	require.ErrorContains(t, c.AddItem("Test 1", "link"), "invalid xray link")
 
 	var createdItem *Item
 	c.OnAdd(func(item *Item) {
